@@ -248,51 +248,7 @@ const CameraView = () => {
                     </div>
                 </section>
 
-                <section className="images-section">
-                    <div className="section-heading">
-                        <h2>Resultado da captura</h2>
-                        <p>Compare a fotografia original com a região recortada.</p>
-                    </div>
-
-                    <div className="images-grid">
-                        <article className="image-card">
-                            <h3>Foto original</h3>
-                            <div className="preview-card">
-                                {fotoUrl ? (
-                                    <img src={fotoUrl} alt="Foto capturada pela câmera" />
-                                ) : (
-                                    <div className="image-placeholder">
-                                        <span aria-hidden="true">▧</span>
-                                        <p>Nenhuma foto capturada</p>
-                                    </div>
-                                )}
-                            </div>
-                        </article>
-
-                        <article className="image-card">
-                            <h3>Imagem recortada</h3>
-                            {recorteUrl ? (
-                                <div className='preview-card'>
-                                    <img src={recorteUrl} alt="" />
-                                </div>
-                            ) : (
-                                <div className="image-placeholder">
-                                    <span aria-hidden="true">▧</span>
-                                    <p>{processandoRecorte ? 'Processando recorte' : 'Nenhum recorte disponivel'}</p>
-                                </div>
-                            )}
-                        </article>
-                    </div>
-                </section>
-                {diagnostico && (
-                    <section className="diagnostico-section">
-                        <h2>Diagnóstico da geometria</h2>
-
-                        <pre>
-                            {JSON.stringify(diagnostico, null, 2)}
-                        </pre>
-                    </section>
-                )}
+                
             </section>
 
             <footer className="camera-footer">
