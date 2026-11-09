@@ -7,8 +7,11 @@ import { processarValidade } from '../services/validadeApi';
 import type { ResultadoRecorte } from '../services/recorte';
 
 import type { EstadoInferencia, RespostaInferenciaSucesso } from '../types/validade.types';
+import type { DataConfirmadaUsuario, EstadoEdicao } from '../types/confirmacao.types';
+import ConfirmacaoValidadeView from '../components/confirmacao/ConfirmacaoValidadeView';
 
 export function CapturaPage() {
+  //----ESTADOS--------
   const [estado, setEstado] =
     useState<EstadoInferencia>('AGUARDANDO_IMAGEM');
 
@@ -17,8 +20,21 @@ export function CapturaPage() {
 
   const [erro, setErro] = useState<string | null>(null);
 
+  const [estadoEdicao, setEstadoEdicao] =
+    useState<EstadoEdicao>('VISUALIZACAO');
+
+  const [valorEdicao, setValorEdicao] =
+    useState('');
+
+  const [evidenciasAbertas, setEvidenciasAbertas] =
+    useState(false);
+
   const [imagemUrl, setImagemUrl] =
     useState<string | null>(null);
+
+  //----REFs--------
+  const confirmacaoRef =
+  useRef<DataConfirmadaUsuario | null>(null);
 
   const urlRef = useRef<string | null>(null);
 
@@ -30,7 +46,7 @@ export function CapturaPage() {
 
   const resultadoRecorteRef =
     useRef<ResultadoRecorte | null>(null);
-  
+
   const imagemAceitaRef = useRef(false);
 
   useEffect(() => {
@@ -43,13 +59,13 @@ export function CapturaPage() {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
-      resultadoRecorteRef.current=null;
+      resultadoRecorteRef.current = null;
     };
   }, []);
 
   async function receberImagem(
     resultado: ResultadoRecorte,
-  ): Promise<void> {    
+  ): Promise<void> {
     if (
       processandoRef.current ||
       imagemAceitaRef.current
@@ -57,7 +73,7 @@ export function CapturaPage() {
       return;
     }
 
-    if(resultado.blob.size === 0){
+    if (resultado.blob.size === 0) {
       return;
     }
 
@@ -86,8 +102,18 @@ export function CapturaPage() {
       );
 
       if (!montadoRef.current) return;
-
       setResposta(resultadoInferencia);
+
+      // Abstenção controlada: edição manual imediata.
+      if (
+        resultadoInferencia.dados.data_validade === null
+      ) {
+        setEstadoEdicao('EDITANDO');
+        setValorEdicao('');
+      } else {
+        setEstadoEdicao('VISUALIZACAO');
+      }
+
       setEstado('SUCESSO');
 
       console.log(
@@ -111,6 +137,91 @@ export function CapturaPage() {
     }
   }
 
+  function confirmarSugestao(): void {
+    if (
+      confirmacaoRef.current ||
+      estadoEdicao === 'EDITANDO'
+    ) {
+      return;
+    }
+
+    const data = resposta?.dados.data_validade;
+
+    if (!data) return;
+
+    const confirmacao: DataConfirmadaUsuario = {
+      data_confirmada: data,
+      origem_confirmacao: 'CONFIRMACAO_DIRETA',
+      confirmada: true,
+    };
+
+    confirmacaoRef.current = confirmacao;
+
+    console.log(
+      'Data confirmada pelo operador:',
+      confirmacao,
+    );
+  }
+
+   function iniciarEdicao(): void {
+    if (confirmacaoRef.current) return;
+
+    setValorEdicao(
+      resposta?.dados.data_validade ?? '',
+    );
+
+    setEstadoEdicao('EDITANDO');
+  }
+
+
+  function alterarEdicao(valor: string): void {
+    // Qualquer alteração invalida confirmação anterior.
+    confirmacaoRef.current = null;
+    setValorEdicao(valor);
+  }
+
+   function confirmarEdicao(): void {
+    if (confirmacaoRef.current) return;
+
+    const data = valorEdicao.trim();
+
+    if (!data) return;
+
+    const confirmacao: DataConfirmadaUsuario = {
+      data_confirmada: data,
+      origem_confirmacao: 'CORRECAO_MANUAL',
+      confirmada: true,
+    };
+
+    confirmacaoRef.current = confirmacao;
+
+    console.log(
+      'Data corrigida e confirmada:',
+      confirmacao,
+    );
+  }
+
+   function cancelarEdicao(): void {
+    if (confirmacaoRef.current) return;
+
+    setValorEdicao(
+      resposta?.dados.data_validade ?? '',
+    );
+
+    if (resposta?.dados.data_validade === null) {
+      setEstadoEdicao('EDITANDO');
+    } else {
+      setEstadoEdicao('VISUALIZACAO');
+    }
+  }
+
+  function alternarEvidencias(
+    abertas: boolean,
+  ): void {
+    setEvidenciasAbertas(abertas);
+  }
+
+  
   return (
     <>
       {
@@ -154,58 +265,23 @@ export function CapturaPage() {
         </section>
       )}
 
-      {estado === 'SUCESSO' && resposta && (
-        <section
-          style={{
-            maxWidth: 700,
-            margin: '24px auto',
-            padding: 16,
-          }}
-        >
-          <h2>Resultado da inferência</h2>
+      {estado === 'SUCESSO' && resposta && imagemUrl && (
+        <ConfirmacaoValidadeView
+          imagemUrl={imagemUrl}
+          dados={resposta.dados}
+          estadoEdicao={estadoEdicao}
+          valorEdicao={valorEdicao}
+          evidenciasAbertas={evidenciasAbertas}
+          onAlternarEvidencias={alternarEvidencias}
+          onConfirmarSugestao={confirmarSugestao}
+          onIniciarEdicao={iniciarEdicao}
+          onAlterarEdicao={alterarEdicao}
+          onConfirmarEdicao={confirmarEdicao}
+          onCancelarEdicao={cancelarEdicao}
+        />
+      )}   
 
-          {imagemUrl && (
-            <img
-              src={imagemUrl}
-              alt="Imagem recortada enviada à IA"
-              style={{
-                display: 'block',
-                maxWidth: '100%',
-                maxHeight: 300,
-                objectFit: 'contain',
-                marginBottom: 16,
-              }}
-            />
-          )}
-
-          <p>
-            <strong>Data sugerida pela IA:</strong>{' '}
-            {resposta.dados.data_validade ??
-              'Nenhuma sugestão principal'}
-          </p>
-
-          <p>
-            <strong>Texto identificado:</strong>{' '}
-            {resposta.dados.texto_identificado}
-          </p>
-
-          <details>
-            <summary>
-              Consultar resposta técnica
-            </summary>
-
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                overflowWrap: 'anywhere',
-              }}
-            >
-              {JSON.stringify(resposta, null, 2)}
-            </pre>
-          </details>
-        </section>
-      )}
-
+   
       {estado === 'ERRO' && (
         <section
           role="alert"
