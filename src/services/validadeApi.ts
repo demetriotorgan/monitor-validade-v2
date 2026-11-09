@@ -2,8 +2,7 @@
 import axios from 'axios';
 import api from './api';
 
-import type {
-  DadosInferencia,
+import type {  
   RespostaInferencia,
   RespostaInferenciaSucesso,
 } from '../types/validade.types';
