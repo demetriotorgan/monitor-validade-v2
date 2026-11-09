@@ -12,18 +12,10 @@ import { useImageCrop } from '../../hooks/useImageCrop';
 import type { ResultadoRecorte } from '../../services/recorte';
 import  CameraView  from './CameraView';
 
-export type EtapaCaptura =
-  | 'CAMERA_DESLIGADA'
-  | 'CAMERA_ABRINDO'
-  | 'CAMERA_PRONTA'
-  | 'CAPTURANDO'
-  | 'RECORTANDO'
-  | 'IMAGEM_RECORTADA'
-  | 'ERRO';
-
-interface CameraControllerProps {
-  onImagemAceita: (resultado: ResultadoRecorte) => void;
-}
+import type {
+  EtapaCaptura,
+  CameraControllerProps,
+} from '../../types/camera.types';
 
 export function CameraController({
   onImagemAceita,

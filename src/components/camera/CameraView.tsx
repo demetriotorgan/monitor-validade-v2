@@ -1,24 +1,6 @@
 
-import type { RefObject } from 'react';
 import './CameraView.css';
-
-import type { EtapaCaptura } from './CameraController';
-
-interface CameraViewProps {
-  videoRef: RefObject<HTMLVideoElement | null>;
-  canvasRef: RefObject<HTMLCanvasElement | null>;
-  molduraRef: RefObject<HTMLDivElement | null>;
-
-  etapa: EtapaCaptura;
-  recorteUrl: string | null;
-  erro: string | null;
-
-  onAbrirCamera: () => void;
-  onCapturarFoto: () => void;
-  onEncerrarCamera: () => void;
-  onRepetirCaptura: () => void;
-  onProsseguir: () => void;
-}
+import type { CameraViewProps } from '../../types/camera.types';
 
 const CameraView = ({
   videoRef,
