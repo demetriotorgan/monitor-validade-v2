@@ -66,24 +66,50 @@ export type MetricasInteracao =
     | MetricasNaoConfirmada;
 
 /**
- * Estado local da edição manual.
+ * CT-INT-10 — Estado funcional da confirmação humana.
+ *
+ * AGUARDANDO_CONFIRMACAO:
+ * Aguardando confirmação da sugestão ou início de edição.
+ *
+ * EDITANDO:
+ * Operador está editando a data.
+ * Pode existir uma confirmação anterior ainda vigente.
+ *
+ * CONFIRMADA:
+ * Existe uma confirmação humana vigente.
+ * A data ainda não foi validada pelo Grupo 4.
  */
-export type EstadoEdicao =
-    | 'VISUALIZACAO'
-    | 'EDITANDO';
+export type EstadoConfirmacao =
+    | 'AGUARDANDO_CONFIRMACAO'
+    | 'EDITANDO'
+    | 'CONFIRMADA';
 
 /**
- * RF-17 a RF-22 — Contrato da interface visual.
+ * RF-17 a RF-22 / CT-INT-10
+ * Contrato da interface visual.
  *
- * A View recebe os dados originais da IA
+ * A View recebe os dados originais da IA,
+ * o estado funcional da confirmação
  * e comunica as ações do operador.
+ *
+ * Não produz contratos de confirmação
+ * nem executa normalização ou validação.
  */
 export interface ConfirmacaoValidadeViewProps {
     imagemUrl: string;
     dados: DadosInferencia;
 
-    estadoEdicao: EstadoEdicao;
+    estadoConfirmacao: EstadoConfirmacao;
     valorEdicao: string;
+
+    /**
+     * Última confirmação humana vigente.
+     *
+     * null: não existe confirmação vigente.
+     * Pode permanecer preenchida durante EDITANDO,
+     * até a primeira alteração textual efetiva.
+     */
+    confirmacaoVigente: DataConfirmadaUsuario | null;
 
     onConfirmarSugestao: () => void;
     onIniciarEdicao: () => void;

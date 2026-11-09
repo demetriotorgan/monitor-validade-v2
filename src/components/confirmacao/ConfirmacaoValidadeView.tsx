@@ -8,8 +8,9 @@ import './ConfirmacaoValidadeView.css';
 export function ConfirmacaoValidadeView({
   imagemUrl,
   dados,
-  estadoEdicao,
+  estadoConfirmacao,
   valorEdicao,
+  confirmacaoVigente,
   evidenciasAbertas,
   onAlternarEvidencias,
   onConfirmarSugestao,
@@ -18,15 +19,35 @@ export function ConfirmacaoValidadeView({
   onConfirmarEdicao,
   onCancelarEdicao,
 }: ConfirmacaoValidadeViewProps) {
-  const possuiSugestao = dados.data_validade !== null;
-  const editando = estadoEdicao === 'EDITANDO';
 
+  // ---- ESTADO VISUAL ----
+
+  const possuiSugestao =
+    dados.data_validade !== null;
+
+  const editando =
+    estadoConfirmacao === 'EDITANDO';
+
+  const confirmada =
+    estadoConfirmacao === 'CONFIRMADA';
+
+  const aguardandoConfirmacao =
+    estadoConfirmacao === 'AGUARDANDO_CONFIRMACAO';
+
+  const possuiConfirmacaoVigente =
+    confirmacaoVigente !== null;
+
+  // DEC-INT-10-05:
+  // O operador só pode confirmar uma edição
+  // quando não existir confirmação vigente.
   const podeConfirmarEdicao =
-    valorEdicao.trim().length > 0;
+    valorEdicao.trim().length > 0 &&
+    !possuiConfirmacaoVigente;
 
   return (
     <main className="confirmacao-page">
       <section className="confirmacao-container">
+
         <header className="confirmacao-header">
           <h1>Confirmar validade</h1>
 
@@ -36,6 +57,8 @@ export function ConfirmacaoValidadeView({
           </p>
         </header>
 
+        {/* ---- IMAGEM RECORTADA ---- */}
+
         <section className="confirmacao-imagem">
           <h2>Imagem capturada</h2>
 
@@ -44,6 +67,8 @@ export function ConfirmacaoValidadeView({
             alt="Imagem recortada da validade do produto"
           />
         </section>
+
+        {/* ---- RESULTADO DA IA ---- */}
 
         <section className="confirmacao-resultado">
           <h2>Data de validade sugerida pela IA</h2>
@@ -59,10 +84,32 @@ export function ConfirmacaoValidadeView({
             </p>
           )}
 
-          <p className="confirmacao-status">
-            Aguardando confirmação do operador
+          {/* ---- CONFIRMAÇÃO HUMANA VIGENTE ---- */}
+
+          {confirmacaoVigente !== null && (
+            <div className="confirmacao-humana">
+              <h3>Data confirmada pelo operador</h3>
+
+              <p className="confirmacao-data">
+                {confirmacaoVigente.data_confirmada}
+              </p>
+            </div>
+          )}
+
+          {/* ---- STATUS DA CONFIRMAÇÃO ---- */}
+
+          <p
+            className="confirmacao-status"
+            role="status"
+            aria-live="polite"
+          >
+            {possuiConfirmacaoVigente
+              ? 'Data confirmada pelo operador — aguardando validação'
+              : 'Aguardando confirmação do operador'}
           </p>
         </section>
+
+        {/* ---- EVIDÊNCIAS DA IA ---- */}
 
         <section className="confirmacao-evidencias">
           <details
@@ -88,7 +135,9 @@ export function ConfirmacaoValidadeView({
                   {dados.datas_candidatas.map(
                     (candidata, indice) => (
                       <li key={indice}>
-                        <strong>{candidata.data}</strong>
+                        <strong>
+                          {candidata.data}
+                        </strong>
 
                         <span>
                           {' '}— {candidata.interpretacao}
@@ -104,7 +153,9 @@ export function ConfirmacaoValidadeView({
                   )}
                 </ul>
               ) : (
-                <p>Nenhuma data candidata identificada.</p>
+                <p>
+                  Nenhuma data candidata identificada.
+                </p>
               )}
 
               <h3>Texto identificado</h3>
@@ -119,8 +170,13 @@ export function ConfirmacaoValidadeView({
           </details>
         </section>
 
+        {/* ---- AÇÕES DO OPERADOR ---- */}
+
         <section className="confirmacao-acoes">
-          {editando ? (
+
+          {/* ESTADO: EDITANDO */}
+
+          {editando && (
             <>
               <label htmlFor="data-confirmada">
                 Informe a data de validade
@@ -154,7 +210,11 @@ export function ConfirmacaoValidadeView({
                 Cancelar edição
               </button>
             </>
-          ) : (
+          )}
+
+          {/* ESTADO: AGUARDANDO_CONFIRMACAO */}
+
+          {aguardandoConfirmacao && (
             <>
               {possuiSugestao && (
                 <button
@@ -177,6 +237,19 @@ export function ConfirmacaoValidadeView({
               </button>
             </>
           )}
+
+          {/* ESTADO: CONFIRMADA */}
+
+          {confirmada && (
+            <button
+              type="button"
+              className="confirmacao-botao-secundario"
+              onClick={onIniciarEdicao}
+            >
+              Corrigir data manualmente
+            </button>
+          )}
+
         </section>
       </section>
     </main>

@@ -2,39 +2,53 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { CameraController } from '../components/camera/CameraController';
+import ConfirmacaoValidadeView from '../components/confirmacao/ConfirmacaoValidadeView';
+
 import { processarValidade } from '../services/validadeApi';
 
 import type { ResultadoRecorte } from '../services/recorte';
 
-import type { EstadoInferencia, RespostaInferenciaSucesso } from '../types/validade.types';
-import type { DataConfirmadaUsuario, EstadoEdicao } from '../types/confirmacao.types';
-import ConfirmacaoValidadeView from '../components/confirmacao/ConfirmacaoValidadeView';
+import type {
+  EstadoInferencia,
+  RespostaInferenciaSucesso,
+} from '../types/validade.types';
+
+import type {
+  DataConfirmadaUsuario,
+  EstadoConfirmacao,
+  OrigemConfirmacao,
+} from '../types/confirmacao.types';
 
 export function CapturaPage() {
-  //----ESTADOS--------
+  // ---- ESTADOS DA INFERÊNCIA ----
+
   const [estado, setEstado] =
     useState<EstadoInferencia>('AGUARDANDO_IMAGEM');
 
   const [resposta, setResposta] =
     useState<RespostaInferenciaSucesso | null>(null);
 
-  const [erro, setErro] = useState<string | null>(null);
-
-  const [estadoEdicao, setEstadoEdicao] =
-    useState<EstadoEdicao>('VISUALIZACAO');
-
-  const [valorEdicao, setValorEdicao] =
-    useState('');
-
-  const [evidenciasAbertas, setEvidenciasAbertas] =
-    useState(false);
+  const [erro, setErro] =
+    useState<string | null>(null);
 
   const [imagemUrl, setImagemUrl] =
     useState<string | null>(null);
 
-  //----REFs--------
-  const confirmacaoRef =
-  useRef<DataConfirmadaUsuario | null>(null);
+  // ---- ESTADOS DA CONFIRMAÇÃO HUMANA ----
+
+  const [estadoConfirmacao, setEstadoConfirmacao] =
+    useState<EstadoConfirmacao>('AGUARDANDO_CONFIRMACAO');
+
+  const [valorEdicao, setValorEdicao] =
+    useState<string>('');
+
+  const [confirmacaoVigente, setConfirmacaoVigente] =
+    useState<DataConfirmadaUsuario | null>(null);
+
+  const [evidenciasAbertas, setEvidenciasAbertas] =
+    useState(false);
+
+  // ---- REFS ----
 
   const urlRef = useRef<string | null>(null);
 
@@ -49,6 +63,18 @@ export function CapturaPage() {
 
   const imagemAceitaRef = useRef(false);
 
+  // DEC-INT-10-07:
+  // Proteção síncrona contra confirmações duplicadas.
+  const travaConfirmacaoRef = useRef(false);
+
+  // Espelho síncrono da confirmação vigente.
+  // Evita depender exclusivamente da atualização
+  // assíncrona do useState em eventos consecutivos.
+  const confirmacaoAtualRef =
+    useRef<DataConfirmadaUsuario | null>(null);
+
+  // ---- CICLO DE VIDA ----
+
   useEffect(() => {
     montadoRef.current = true;
 
@@ -59,9 +85,65 @@ export function CapturaPage() {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
+
       resultadoRecorteRef.current = null;
     };
   }, []);
+
+  // ---- CONTROLE INTERNO DA CONFIRMAÇÃO ----
+
+  function atualizarConfirmacao(
+    confirmacao: DataConfirmadaUsuario | null,
+  ): void {
+    confirmacaoAtualRef.current = confirmacao;
+    setConfirmacaoVigente(confirmacao);
+  }
+
+  function reiniciarConfirmacao(): void {
+    atualizarConfirmacao(null);
+
+    travaConfirmacaoRef.current = false;
+
+    setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
+    setValorEdicao('');
+    setEvidenciasAbertas(false);
+  }
+
+  function registrarConfirmacao(
+    data: string,
+    origem: OrigemConfirmacao,
+  ): void {
+    if (
+      travaConfirmacaoRef.current ||
+      confirmacaoAtualRef.current !== null
+    ) {
+      return;
+    }
+
+    if (data.trim().length === 0) {
+      return;
+    }
+
+    // A trava é ativada antes da produção do contrato.
+    travaConfirmacaoRef.current = true;
+
+    const confirmacao: DataConfirmadaUsuario = {
+      data_confirmada: data,
+      origem_confirmacao: origem,
+      confirmada: true,
+    };
+
+    atualizarConfirmacao(confirmacao);
+    setEstadoConfirmacao('CONFIRMADA');
+
+    // Integração com o Grupo 4 será adicionada depois.
+    console.log(
+      'Data confirmada pelo operador:',
+      confirmacao,
+    );
+  }
+
+  // ---- AQUISIÇÃO E INFERÊNCIA ----
 
   async function receberImagem(
     resultado: ResultadoRecorte,
@@ -85,8 +167,10 @@ export function CapturaPage() {
     setResposta(null);
     setErro(null);
 
-    // Preserva a imagem recortada para a futura
-    // interface de confirmação humana.
+    // Reinicia o ciclo de confirmação da operação.
+    reiniciarConfirmacao();
+
+    // Preserva a imagem recortada para a interface.
     const novaUrl = URL.createObjectURL(resultado.blob);
 
     if (urlRef.current) {
@@ -102,16 +186,19 @@ export function CapturaPage() {
       );
 
       if (!montadoRef.current) return;
+
       setResposta(resultadoInferencia);
 
-      // Abstenção controlada: edição manual imediata.
+      // Abstenção controlada:
+      // edição manual imediata, sem nova inferência.
       if (
         resultadoInferencia.dados.data_validade === null
       ) {
-        setEstadoEdicao('EDITANDO');
+        setEstadoConfirmacao('EDITANDO');
         setValorEdicao('');
       } else {
-        setEstadoEdicao('VISUALIZACAO');
+        setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
+        setValorEdicao('');
       }
 
       setEstado('SUCESSO');
@@ -137,83 +224,142 @@ export function CapturaPage() {
     }
   }
 
+  // ---- CONFIRMAÇÃO DIRETA ----
+
   function confirmarSugestao(): void {
     if (
-      confirmacaoRef.current ||
-      estadoEdicao === 'EDITANDO'
+      estado !== 'SUCESSO' ||
+      estadoConfirmacao !== 'AGUARDANDO_CONFIRMACAO'
     ) {
       return;
     }
 
     const data = resposta?.dados.data_validade;
 
-    if (!data) return;
+    if (data === null || data === undefined) {
+      return;
+    }
 
-    const confirmacao: DataConfirmadaUsuario = {
-      data_confirmada: data,
-      origem_confirmacao: 'CONFIRMACAO_DIRETA',
-      confirmada: true,
-    };
-
-    confirmacaoRef.current = confirmacao;
-
-    console.log(
-      'Data confirmada pelo operador:',
-      confirmacao,
+    registrarConfirmacao(
+      data,
+      'CONFIRMACAO_DIRETA',
     );
   }
 
-   function iniciarEdicao(): void {
-    if (confirmacaoRef.current) return;
+  // ---- EDIÇÃO MANUAL ----
 
-    setValorEdicao(
-      resposta?.dados.data_validade ?? '',
-    );
+  function iniciarEdicao(): void {
+    if (
+      estado !== 'SUCESSO' ||
+      estadoConfirmacao === 'EDITANDO'
+    ) {
+      return;
+    }
 
-    setEstadoEdicao('EDITANDO');
+    // DEC-INT-10-09:
+    // Última confirmação vigente tem prioridade.
+    const valorInicial =
+      confirmacaoAtualRef.current?.data_confirmada ??
+      resposta?.dados.data_validade ??
+      '';
+
+    setValorEdicao(valorInicial);
+    setEstadoConfirmacao('EDITANDO');
+
+    // Abrir a edição não invalida a confirmação
+    // nem libera a trava.
   }
-
 
   function alterarEdicao(valor: string): void {
-    // Qualquer alteração invalida confirmação anterior.
-    confirmacaoRef.current = null;
+    if (
+      estado !== 'SUCESSO' ||
+      estadoConfirmacao !== 'EDITANDO'
+    ) {
+      return;
+    }
+
+    // DEC-INT-10-04:
+    // Comparação textual exata, sem normalização.
+    if (valor === valorEdicao) {
+      return;
+    }
+
     setValorEdicao(valor);
-  }
 
-   function confirmarEdicao(): void {
-    if (confirmacaoRef.current) return;
+    if (confirmacaoAtualRef.current !== null) {
+      // DEC-RF22-01:
+      // Primeira alteração efetiva invalida a
+      // confirmação anterior.
+      atualizarConfirmacao(null);
 
-    const data = valorEdicao.trim();
-
-    if (!data) return;
-
-    const confirmacao: DataConfirmadaUsuario = {
-      data_confirmada: data,
-      origem_confirmacao: 'CORRECAO_MANUAL',
-      confirmada: true,
-    };
-
-    confirmacaoRef.current = confirmacao;
-
-    console.log(
-      'Data corrigida e confirmada:',
-      confirmacao,
-    );
-  }
-
-   function cancelarEdicao(): void {
-    if (confirmacaoRef.current) return;
-
-    setValorEdicao(
-      resposta?.dados.data_validade ?? '',
-    );
-
-    if (resposta?.dados.data_validade === null) {
-      setEstadoEdicao('EDITANDO');
-    } else {
-      setEstadoEdicao('VISUALIZACAO');
+      // DEC-INT-10-07:
+      // Libera uma nova confirmação explícita.
+      travaConfirmacaoRef.current = false;
     }
   }
+
+  function confirmarEdicao(): void {
+    if (
+      estado !== 'SUCESSO' ||
+      estadoConfirmacao !== 'EDITANDO'
+    ) {
+      return;
+    }
+
+    if (confirmacaoAtualRef.current !== null) {
+      return;
+    }
+
+    // trim() verifica apenas se o campo está vazio.
+    // O valor confirmado permanece textual e original.
+    if (valorEdicao.trim().length === 0) {
+      return;
+    }
+
+    registrarConfirmacao(
+      valorEdicao,
+      'CORRECAO_MANUAL',
+    );
+  }
+
+  function cancelarEdicao(): void {
+    if (
+      estado !== 'SUCESSO' ||
+      estadoConfirmacao !== 'EDITANDO'
+    ) {
+      return;
+    }
+
+    const confirmacao = confirmacaoAtualRef.current;
+
+    // DEC-INT-10-03:
+    // Cancelamento sem invalidação.
+    if (confirmacao !== null) {
+      setValorEdicao(confirmacao.data_confirmada);
+      setEstadoConfirmacao('CONFIRMADA');
+      return;
+    }
+
+    // DEC-INT-10-10:
+    // Cancelamento após invalidação restaura
+    // a sugestão original da IA.
+    const sugestaoOriginal =
+      resposta?.dados.data_validade ?? null;
+
+    setValorEdicao(sugestaoOriginal ?? '');
+
+    if (sugestaoOriginal === null) {
+      setEstadoConfirmacao('EDITANDO');
+    } else {
+      setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
+    }
+
+    // Não restaura confirmação invalidada.
+    // Não produz novo contrato.
+    // Não encaminha dados ao Grupo 4.
+  }
+
+  // ---- EVIDÊNCIAS ----
 
   function alternarEvidencias(
     abertas: boolean,
@@ -221,18 +367,17 @@ export function CapturaPage() {
     setEvidenciasAbertas(abertas);
   }
 
-  
+  // ---- RENDERIZAÇÃO ----
+
   return (
     <>
-      {
-        estado === 'AGUARDANDO_IMAGEM' && (
-          <CameraController
-            onImagemAceita={(resultado) => {
-              void receberImagem(resultado);
-            }}
-          />
-        )
-      }
+      {estado === 'AGUARDANDO_IMAGEM' && (
+        <CameraController
+          onImagemAceita={(resultado) => {
+            void receberImagem(resultado);
+          }}
+        />
+      )}
 
       {estado === 'PROCESSANDO' && (
         <section
@@ -245,6 +390,7 @@ export function CapturaPage() {
           }}
         >
           <h2>Analisando imagem...</h2>
+
           {imagemUrl && (
             <img
               src={imagemUrl}
@@ -258,6 +404,7 @@ export function CapturaPage() {
               }}
             />
           )}
+
           <p>
             Aguarde enquanto a IA identifica
             as informações da validade.
@@ -269,8 +416,9 @@ export function CapturaPage() {
         <ConfirmacaoValidadeView
           imagemUrl={imagemUrl}
           dados={resposta.dados}
-          estadoEdicao={estadoEdicao}
+          estadoConfirmacao={estadoConfirmacao}
           valorEdicao={valorEdicao}
+          confirmacaoVigente={confirmacaoVigente}
           evidenciasAbertas={evidenciasAbertas}
           onAlternarEvidencias={alternarEvidencias}
           onConfirmarSugestao={confirmarSugestao}
@@ -279,9 +427,8 @@ export function CapturaPage() {
           onConfirmarEdicao={confirmarEdicao}
           onCancelarEdicao={cancelarEdicao}
         />
-      )}   
+      )}
 
-   
       {estado === 'ERRO' && (
         <section
           role="alert"
@@ -292,6 +439,7 @@ export function CapturaPage() {
           }}
         >
           <h2>Falha na análise</h2>
+
           <p>
             Não foi possível concluir a análise da imagem.
           </p>
