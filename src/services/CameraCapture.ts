@@ -2,7 +2,13 @@
 export class CameraCapture {
   private video: HTMLVideoElement;
   private canvas: HTMLCanvasElement;
-  private stream: MediaStream | null = null;  
+
+  private stream: MediaStream | null = null;
+  private aberturaEmAndamento: Promise<void> | null = null;
+  private capturaEmAndamento = false;
+
+  private versaoOperacao = 0;
+  private cancelamentoAbertura: AbortController | null = null;
 
   constructor({
     video,
@@ -15,10 +21,27 @@ export class CameraCapture {
     this.canvas = canvas;
   }
 
-  // Abre a câmera e inicia a reprodução.
-  async abrirCamera(): Promise<void> {
+  private operacaoValida(versao: number): boolean {
+    return versao === this.versaoOperacao;
+  }
+
+  private erroCancelamento(): Error {
+    return new Error('Operação da câmera cancelada.');
+  }
+
+  private verificarOperacao(versao: number): void {
+    if (!this.operacaoValida(versao)) {
+      throw this.erroCancelamento();
+    }
+  }
+
+  private async obterStream(
+    versao: number,
+  ): Promise<MediaStream> {
+    let stream: MediaStream;
+
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
           width: { ideal: 1920 },
@@ -27,45 +50,167 @@ export class CameraCapture {
         audio: false,
       });
     } catch (error: unknown) {
+      this.verificarOperacao(versao);
+
+      const nome =
+        error instanceof DOMException ? error.name : '';
+
+      // Uma permissão negada não deve gerar
+      // uma segunda solicitação.
+      const permiteFallback = [
+        'OverconstrainedError',
+        'NotFoundError',
+        'NotReadableError',
+      ].includes(nome);
+
+      if (!permiteFallback) {
+        throw error;
+      }
+
       console.warn(
-        'Falha ao abrir a câmera preferencial. Tentando alternativa.',
+        'Falha na configuração preferencial. Tentando alternativa.',
         error,
       );
 
-      this.stream = await navigator.mediaDevices.getUserMedia({
+      stream = await navigator.mediaDevices.getUserMedia({
         video: true,
         audio: false,
       });
     }
 
-    this.video.srcObject = this.stream;
+    if (!this.operacaoValida(versao)) {
+      stream.getTracks().forEach((track) => track.stop());
+      throw this.erroCancelamento();
+    }
+
+    return stream;
+  }
+
+  private aguardarVideo(
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (signal.aborted) {
+      return Promise.reject(this.erroCancelamento());
+    }
+
+    if (this.video.readyState >= 2) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const limpar = () => {
+        this.video.removeEventListener('loadeddata', carregar);
+        this.video.removeEventListener('error', falhar);
+        signal.removeEventListener('abort', cancelar);
+      };
+
+      const finalizar = (erro?: Error) => {
+        limpar();
+
+        if (erro) {
+          reject(erro);
+        } else {
+          resolve();
+        }
+      };
+
+      const carregar = () => finalizar();
+
+      const falhar = () =>
+        finalizar(new Error('Falha ao carregar o vídeo.'));
+
+      const cancelar = () =>
+        finalizar(this.erroCancelamento());
+
+      this.video.addEventListener('loadeddata', carregar);
+      this.video.addEventListener('error', falhar);
+      signal.addEventListener('abort', cancelar, {
+        once: true,
+      });
+
+      if (signal.aborted) {
+        cancelar();
+      } else if (this.video.readyState >= 2) {
+        carregar();
+      }
+    });
+  }
+
+  async abrirCamera(): Promise<void> {
+    if (this.aberturaEmAndamento) {
+      return this.aberturaEmAndamento;
+    }
+
+    if (this.stream) {
+      return;
+    }
+
+    const versao = this.versaoOperacao;
+    const controlador = new AbortController();
+
+    this.cancelamentoAbertura = controlador;
+
+    const operacao = this.iniciarCamera(
+      versao,
+      controlador.signal,
+    );
+
+    this.aberturaEmAndamento = operacao;
 
     try {
-      if (this.video.readyState < 2) {
-        await new Promise<void>((resolve, reject) => {
-          this.video.addEventListener('loadeddata', () => resolve(), {
-            once: true,
-          });
-
-          this.video.addEventListener(
-            'error',
-            () => reject(new Error('Falha ao carregar o vídeo da câmera.')),
-            { once: true },
-          );
-        });
+      await operacao;
+    } finally {
+      if (this.aberturaEmAndamento === operacao) {
+        this.aberturaEmAndamento = null;
       }
+
+      if (this.cancelamentoAbertura === controlador) {
+        this.cancelamentoAbertura = null;
+      }
+    }
+  }
+
+  private async iniciarCamera(
+    versao: number,
+    signal: AbortSignal,
+  ): Promise<void> {
+    let novoStream: MediaStream | null = null;
+
+    try {
+      novoStream = await this.obterStream(versao);
+
+      this.verificarOperacao(versao);
+
+      this.stream = novoStream;
+      this.video.srcObject = novoStream;
+
+      await this.aguardarVideo(signal);
+
+      this.verificarOperacao(versao);
 
       await this.video.play();
 
+      this.verificarOperacao(versao);
+
       console.log('Câmera iniciada com sucesso');
     } catch (error: unknown) {
-      this.encerrarCamera();
+      novoStream?.getTracks().forEach((track) => track.stop());
+
+      // Uma operação antiga nunca deve
+      // encerrar um stream mais recente.
+      if (this.operacaoValida(versao)) {
+        this.encerrarCamera();
+      }
+
       throw error;
     }
   }
 
-  // Captura o quadro atual do vídeo.
   async capturarFoto(): Promise<Blob> {
+    if (this.capturaEmAndamento) {
+      throw new Error('Já existe uma captura em andamento.');
+    }
+
     if (
       !this.stream ||
       !this.video.videoWidth ||
@@ -76,56 +221,78 @@ export class CameraCapture {
       );
     }
 
-    this.canvas.width = this.video.videoWidth;
-    this.canvas.height = this.video.videoHeight;
+    this.capturaEmAndamento = true;
+    const versao = this.versaoOperacao;
 
-    const contexto = this.canvas.getContext('2d');
+    try {
+      const largura = this.video.videoWidth;
+      const altura = this.video.videoHeight;
 
-    if (!contexto) {
-      throw new Error('Não foi possível obter o contexto do canvas.');
-    }
+      this.canvas.width = largura;
+      this.canvas.height = altura;
 
-    contexto.drawImage(
-      this.video,
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height,
-    );
+      const contexto = this.canvas.getContext('2d');
 
-    const blob = await new Promise<Blob>((resolve, reject) => {
-      this.canvas.toBlob(
-        (resultado) => {
-          if (resultado) {
-            resolve(resultado);
-          } else {
-            reject(new Error('Não foi possível gerar a imagem.'));
-          }
-        },
-        'image/jpeg',
-        0.95,
+      if (!contexto) {
+        throw new Error(
+          'Não foi possível obter o contexto do canvas.',
+        );
+      }
+
+      contexto.drawImage(
+        this.video,
+        0,
+        0,
+        largura,
+        altura,
       );
-    });    
 
-    console.log('Foto capturada:', {
-      largura: this.canvas.width,
-      altura: this.canvas.height,
-      tamanho: blob.size,
-      tipo: blob.type,
-    });
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        this.canvas.toBlob(
+          (resultado) => {
+            if (resultado) {
+              resolve(resultado);
+            } else {
+              reject(
+                new Error('Não foi possível gerar a imagem.'),
+              );
+            }
+          },
+          'image/jpeg',
+          0.95,
+        );
+      });
 
-    return blob;
+      this.verificarOperacao(versao);
+
+      console.log('Foto capturada:', {
+        largura,
+        altura,
+        tamanho: blob.size,
+        tipo: blob.type,
+      });
+
+      return blob;
+    } finally {
+      this.capturaEmAndamento = false;
+    }
   }
 
-  // Encerra a câmera e libera seus recursos.
   encerrarCamera(): void {
-    if (this.stream) {
-      this.stream.getTracks().forEach((track) => track.stop());
-      this.stream = null;
-    }
+    this.versaoOperacao++;
+
+    this.cancelamentoAbertura?.abort();
+    this.cancelamentoAbertura = null;
+
+    // Permite uma nova abertura mesmo quando
+    // getUserMedia anterior continua pendente.
+    this.aberturaEmAndamento = null;
+
+    this.stream?.getTracks().forEach((track) => track.stop());
+    this.stream = null;
 
     this.video.pause();
-    this.video.srcObject = null;    
+    this.video.srcObject = null;
 
     console.log('Câmera encerrada com sucesso');
   }
