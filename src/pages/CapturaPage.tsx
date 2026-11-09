@@ -6,7 +6,7 @@ import { processarValidade } from '../services/validadeApi';
 
 import type { ResultadoRecorte } from '../services/recorte';
 
-import type { EstadoInferencia, RespostaInferenciaSucesso} from '../types/validade.types';
+import type { EstadoInferencia, RespostaInferenciaSucesso } from '../types/validade.types';
 
 export function CapturaPage() {
   const [estado, setEstado] =
@@ -28,6 +28,11 @@ export function CapturaPage() {
   // Impede atualização de estado após desmontagem.
   const montadoRef = useRef(true);
 
+  const resultadoRecorteRef =
+    useRef<ResultadoRecorte | null>(null);
+  
+  const imagemAceitaRef = useRef(false);
+
   useEffect(() => {
     montadoRef.current = true;
 
@@ -38,17 +43,27 @@ export function CapturaPage() {
         URL.revokeObjectURL(urlRef.current);
         urlRef.current = null;
       }
+      resultadoRecorteRef.current=null;
     };
   }, []);
 
   async function receberImagem(
     resultado: ResultadoRecorte,
-  ): Promise<void> {
-    if (processandoRef.current) {
+  ): Promise<void> {    
+    if (
+      processandoRef.current ||
+      imagemAceitaRef.current
+    ) {
       return;
     }
 
+    if(resultado.blob.size === 0){
+      return;
+    }
+
+    imagemAceitaRef.current = true;
     processandoRef.current = true;
+    resultadoRecorteRef.current = resultado;
 
     setEstado('PROCESSANDO');
     setResposta(null);
@@ -98,11 +113,15 @@ export function CapturaPage() {
 
   return (
     <>
-      <CameraController
-        onImagemAceita={(resultado) => {
-          void receberImagem(resultado);
-        }}
-      />
+      {
+        estado === 'AGUARDANDO_IMAGEM' && (
+          <CameraController
+            onImagemAceita={(resultado) => {
+              void receberImagem(resultado);
+            }}
+          />
+        )
+      }
 
       {estado === 'PROCESSANDO' && (
         <section
@@ -115,6 +134,19 @@ export function CapturaPage() {
           }}
         >
           <h2>Analisando imagem...</h2>
+          {imagemUrl && (
+            <img
+              src={imagemUrl}
+              alt="Imagem recortada em análise"
+              style={{
+                display: 'block',
+                maxWidth: '100%',
+                maxHeight: 300,
+                objectFit: 'contain',
+                marginBottom: 16,
+              }}
+            />
+          )}
           <p>
             Aguarde enquanto a IA identifica
             as informações da validade.
