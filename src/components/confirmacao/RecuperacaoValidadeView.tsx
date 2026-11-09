@@ -1,4 +1,5 @@
 
+import './RecuperacaoValidadeView.css'
 import { useState } from 'react';
 
 import type {
@@ -41,7 +42,9 @@ export function RecuperacaoValidadeView({
         editando && reedicaoEmAndamento;
 
     return (
-        <section className="confirmacao-validade">
+       <section className='recuperacao-page'>
+        <div className='recuperacao-container'>
+             <section className="confirmacao-validade">
 
             <header className="confirmacao-cabecalho">
                 <h2>Recuperação manual da validade</h2>
@@ -99,7 +102,7 @@ export function RecuperacaoValidadeView({
                         autoComplete="off"
                     />
 
-                    <div className="confirmacao-acoes">
+                    <div className="recuperacao-botao-primario">
                         <button
                             type="button"
                             onClick={onConfirmarEdicao}
@@ -109,7 +112,7 @@ export function RecuperacaoValidadeView({
                         </button>
 
                         {podeCancelarEdicao && (
-                            <button
+                            <button className='recuperacao-botao-secundario'
                                 type="button"
                                 onClick={onCancelarEdicao}
                             >
@@ -121,7 +124,7 @@ export function RecuperacaoValidadeView({
             )}
 
             {confirmada && (
-                <div className="confirmacao-acoes">
+                <div className="recuperacao-botao-secundario">
                     <button
                         type="button"
                         onClick={onIniciarEdicao}
@@ -144,6 +147,8 @@ export function RecuperacaoValidadeView({
             </details>
 
         </section>
+        </div>
+       </section>
     );
 }
 
