@@ -204,3 +204,113 @@ describe('RF29-03 — Ilegibilidade e ambiguidade', () => {
     expect(normalizacao).toEqual(copia);
   });
 });
+
+
+describe('RF29-04 — Casos-limite e regressão', () => {
+
+  const casosMistos = [
+    '21//20?7',
+    '2027--2?',
+    '2?//2027',
+  ] as const;
+
+  it.each(casosMistos)(
+    'prioriza ilegibilidade sobre ausência em %s',
+    (entrada) => {
+      const normalizacao = normalizarData(entrada);
+
+      expect(normalizacao).toMatchObject({
+        sucesso: false,
+        motivo: 'DATA_INCOMPLETA',
+      });
+
+      const resultado = avaliarDataIncompleta(
+        normalizacao
+      );
+
+      expect(resultado).toEqual({
+        aceita: false,
+        data_original: entrada,
+        motivo: 'COMPONENTE_ILEGIVEL',
+        requer_correcao_manual: true,
+      });
+    }
+  );
+
+  it('não classifica formato não suportado como incompleto', () => {
+    const normalizacao = normalizarData(
+      '21/10/2027?'
+    );
+
+    expect(normalizacao).toMatchObject({
+      sucesso: false,
+      motivo: 'FORMATO_NAO_SUPORTADO',
+    });
+
+    expect(
+      avaliarDataIncompleta(normalizacao)
+    ).toBeNull();
+  });
+
+  it('prioriza ambiguidade explícita sobre formato não suportado', () => {
+    const entrada = '21/10/2027?';
+
+    const normalizacao = normalizarData(entrada);
+
+    expect(normalizacao).toMatchObject({
+      sucesso: false,
+      motivo: 'FORMATO_NAO_SUPORTADO',
+    });
+
+    const resultado = avaliarDataIncompleta(
+      normalizacao,
+      { interpretacaoAmbigua: true }
+    );
+
+    expect(resultado).toEqual({
+      aceita: false,
+      data_original: entrada,
+      motivo: 'INTERPRETACAO_AMBIGUA',
+      requer_correcao_manual: true,
+    });
+  });
+
+  it('prioriza ambiguidade explícita sobre ilegibilidade e ausência', () => {
+    const resultado = avaliarDataIncompleta(
+      normalizarData('21//20?7'),
+      { interpretacaoAmbigua: true }
+    );
+
+    expect(resultado?.motivo).toBe(
+      'INTERPRETACAO_AMBIGUA'
+    );
+  });
+
+  it('preserva classificação de ano ausente', () => {
+    const resultado = avaliarDataIncompleta(
+      normalizarData('21/10/')
+    );
+
+    expect(resultado?.motivo).toBe('ANO_AUSENTE');
+  });
+
+  it('não rejeita data completa sem ambiguidade', () => {
+    const resultado = avaliarDataIncompleta(
+      normalizarData('21/10/2027')
+    );
+
+    expect(resultado).toBeNull();
+  });
+
+  it('não altera o resultado de normalização em caso misto', () => {
+    const normalizacao = normalizarData(
+      '21//20?7'
+    );
+
+    const copia = structuredClone(normalizacao);
+
+    avaliarDataIncompleta(normalizacao);
+
+    expect(normalizacao).toEqual(copia);
+  });
+});
