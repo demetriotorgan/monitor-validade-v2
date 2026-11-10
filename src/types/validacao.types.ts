@@ -70,3 +70,23 @@ export interface ResultadoVerificacaoVencimento {
   situacao: SituacaoValidade;
   permite_avancar: boolean;
 }
+
+
+export type MotivoRejeicaoRF29 =
+  | 'DIA_AUSENTE'
+  | 'MES_AUSENTE'
+  | 'ANO_AUSENTE'
+  | 'COMPONENTE_ILEGIVEL'
+  | 'INTERPRETACAO_AMBIGUA'
+  | 'COMPONENTES_INSUFICIENTES';
+
+export interface ResultadoRejeicaoRF29 {
+  aceita: false;
+  data_original: string;
+  motivo: MotivoRejeicaoRF29;
+  requer_correcao_manual: true;
+}
+
+export interface ContextoAvaliacaoRF29 {
+  interpretacaoAmbigua?: boolean;
+}
