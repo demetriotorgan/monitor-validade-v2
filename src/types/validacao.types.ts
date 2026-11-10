@@ -57,3 +57,16 @@ export type ResultadoValidacaoCalendario =
       data: DataNormalizada;
       motivo: MotivoDataInvalida;
     };
+
+
+export type SituacaoValidade =
+  | 'VENCIDO'
+  | 'VENCE_HOJE'
+  | 'DENTRO_DA_VALIDADE';
+
+export interface ResultadoVerificacaoVencimento {
+  data_validade: string;
+  data_referencia: string;
+  situacao: SituacaoValidade;
+  permite_avancar: boolean;
+}
