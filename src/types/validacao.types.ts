@@ -1,4 +1,6 @@
 
+import type { DataCandidata } from "./validade.types";
+
 /**
  * RF-25 — Representação de uma data normalizada.
  *
@@ -89,4 +91,79 @@ export interface ResultadoRejeicaoRF29 {
 
 export interface ContextoAvaliacaoRF29 {
   interpretacaoAmbigua?: boolean;
+}
+
+
+/**
+ * RF-28 — Verificação opcional de coerência
+ * entre fabricação e validade.
+ *
+ * Contrato: CT-RF28-01
+ * Decisão: DEC-G4-15 — Alternativa A
+ */
+
+/**
+ * Situações possíveis da avaliação.
+ */
+export type SituacaoCoerenciaFabricacao =
+  | 'SEM_FABRICACAO'
+  | 'COERENTE'
+  | 'INCOERENTE'
+  | 'REVISAO_NECESSARIA';
+
+/**
+ * Entrada da verificação.
+ *
+ * Pré-condições:
+ * - validade normalizada pelo RF-25;
+ * - validade validada pelo RF-26;
+ * - candidatas provenientes do JSON V2.
+ */
+export interface EntradaVerificacaoFabricacao {
+  validade: DataNormalizada;
+  candidatas: DataCandidata[];
+}
+
+/**
+ * Resultado da avaliação de coerência.
+ *
+ * A verificação não determina a aprovação
+ * final do cadastro.
+ */
+export type ResultadoCoerenciaFabricacao =
+  | {
+      situacao: 'SEM_FABRICACAO';
+      requer_revisao: false;
+      fabricacoes_consideradas: string[];
+    }
+  | {
+      situacao: 'COERENTE';
+      requer_revisao: false;
+      fabricacoes_consideradas: string[];
+    }
+  | {
+      situacao: 'INCOERENTE';
+      requer_revisao: true;
+      fabricacoes_consideradas: string[];
+    }
+  | {
+      situacao: 'REVISAO_NECESSARIA';
+      requer_revisao: true;
+      fabricacoes_consideradas: string[];
+    };
+
+    /**
+ * RF28-02 — Preparação das candidatas
+ * de fabricação.
+ */
+
+export interface FabricacaoNormalizada {
+  data_iso: string;
+  representacoes_originais: string[];
+}
+
+export interface ResultadoPreparacaoFabricacao {
+  fabricacoes: FabricacaoNormalizada[];
+  candidatas_invalidas: string[];
+  candidatas_originais: string[];
 }
