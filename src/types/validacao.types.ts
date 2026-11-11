@@ -167,3 +167,107 @@ export interface ResultadoPreparacaoFabricacao {
   candidatas_invalidas: string[];
   candidatas_originais: string[];
 }
+
+
+
+/**
+ * RF-30 — Consolidação da avaliação de validade.
+ *
+ * CT-RF30-01 — Revisão 5 (congelada)
+ * DEC-G4-17 a DEC-G4-21
+ */
+
+/**
+ * Situações possíveis da avaliação consolidada.
+ */
+export type SituacaoAvaliacaoValidade =
+  | 'APROVADO'
+  | 'REJEITADO'
+  | 'REVISAO_NECESSARIA';
+
+/**
+ * Próxima ação recomendada ao fluxo.
+ */
+export type AcaoRecomendada =
+  | 'PROSSEGUIR'
+  | 'CORRIGIR_DATA'
+  | 'REVISAR_FABRICACAO';
+
+/**
+ * Motivos consolidados.
+ *
+ * Os detalhes técnicos permanecem nos
+ * resultados individuais dos RF anteriores.
+ */
+export type MotivoAvaliacaoValidade =
+  | 'DATA_APROVADA'
+  | 'FORMATO_NAO_SUPORTADO'
+  | 'DATA_INCOMPLETA'
+  | 'DATA_AMBIGUA'
+  | 'DATA_CALENDARIO_INVALIDA'
+  | 'PRODUTO_VENCIDO'
+  | 'FABRICACAO_INCOERENTE'
+  | 'FABRICACAO_REVISAO_NECESSARIA';
+
+/**
+ * Entrada da avaliação.
+ *
+ * dataConfirmada:
+ *   data confirmada ou corrigida pelo operador.
+ *
+ * candidatas:
+ *   datas identificadas pela IA, utilizadas
+ *   exclusivamente nas verificações aplicáveis.
+ *
+ * dataReferenciaISO:
+ *   data civil de referência no formato AAAA-MM-DD.
+ *
+ * interpretacaoAmbigua:
+ *   sinalização explícita de ambiguidade,
+ *   conforme contrato do RF-29.
+ */
+export interface EntradaAvaliacaoValidade {
+  dataConfirmada: string;
+  candidatas: DataCandidata[];
+  dataReferenciaISO: string;
+  interpretacaoAmbigua?: boolean;
+}
+
+/**
+ * Resultado consolidado.
+ *
+ * Somente APROVADO disponibiliza
+ * a data normalizada para prosseguimento.
+ */
+export type ResultadoAvaliacaoValidade =
+  | {
+      situacao: 'APROVADO';
+      motivo: 'DATA_APROVADA';
+      acao_recomendada: 'PROSSEGUIR';
+      data_normalizada: DataNormalizada;
+    }
+  | {
+      situacao: 'REJEITADO';
+      motivo:
+        | 'FORMATO_NAO_SUPORTADO'
+        | 'DATA_CALENDARIO_INVALIDA'
+        | 'PRODUTO_VENCIDO';
+      acao_recomendada: 'CORRIGIR_DATA';
+      data_normalizada?: never;
+    }
+  | {
+      situacao: 'REVISAO_NECESSARIA';
+      motivo:
+        | 'DATA_INCOMPLETA'
+        | 'DATA_AMBIGUA';
+      acao_recomendada: 'CORRIGIR_DATA';
+      data_normalizada?: never;
+    }
+  | {
+      situacao: 'REVISAO_NECESSARIA';
+      motivo:
+        | 'FABRICACAO_INCOERENTE'
+        | 'FABRICACAO_REVISAO_NECESSARIA';
+      acao_recomendada: 'REVISAR_FABRICACAO';
+      data_normalizada?: never;
+    };
