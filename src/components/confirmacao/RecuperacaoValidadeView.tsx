@@ -13,11 +13,12 @@ export function RecuperacaoValidadeView({
   estadoConfirmacao,
   valorEdicao,
   confirmacaoVigente,
-  reedicaoEmAndamento,
   onAlterarEdicao,
   onConfirmarEdicao,
   onIniciarEdicao,
-  onCancelarEdicao,
+  onCancelarTentativa,
+  apresentacaoAvaliacao,
+  onExecutarAcaoAvaliacao,
 }: RecuperacaoValidadeViewProps) {
 
   const idCampoData = useId();
@@ -31,9 +32,6 @@ export function RecuperacaoValidadeView({
   const podeConfirmarEdicao =
     valorEdicao.trim().length > 0 &&
     !possuiConfirmacaoVigente;
-
-  const podeCancelarEdicao =
-    editando && reedicaoEmAndamento;
 
   return (
     <section className="recuperacao-page">
@@ -74,9 +72,35 @@ export function RecuperacaoValidadeView({
           aria-live="polite"
         >
           {possuiConfirmacaoVigente
-            ? 'Data confirmada pelo operador — aguardando validação.'
+            ? apresentacaoAvaliacao !== null
+              ? 'Data confirmada e avaliada.'
+              : 'Data confirmada pelo operador — aguardando validação.'
             : 'Aguardando confirmação manual do operador.'}
         </div>
+
+
+        {/* RF-31 — Resultado da avaliação */}
+
+        {confirmada &&
+          apresentacaoAvaliacao !== null && (
+            <section
+              className="resultado-avaliacao"
+              aria-live="polite"
+            >
+              <p className="resultado-avaliacao__mensagem">
+                {apresentacaoAvaliacao.mensagem}
+              </p>
+
+              <button
+                type="button"
+                className="resultado-avaliacao__botao"
+                onClick={onExecutarAcaoAvaliacao}
+              >
+                {apresentacaoAvaliacao.rotuloBotao}
+              </button>
+            </section>
+          )}
+
 
         {editando && (
           <div className="recuperacao-edicao">
@@ -106,28 +130,47 @@ export function RecuperacaoValidadeView({
                 Confirmar data informada
               </button>
 
-              {podeCancelarEdicao && (
-                <button
-                  className="recuperacao-botao-secundario"
-                  type="button"
-                  onClick={onCancelarEdicao}
-                >
-                  Cancelar edição
-                </button>
-              )}
+              {/* DEC-G4-26 — Encerramento da tentativa */}
+
+              <button
+                className="recuperacao-botao-secundario"
+                type="button"
+                onClick={onCancelarTentativa}
+              >
+                Cancelar cadastro
+              </button>
             </div>
           </div>
         )}
 
+
+        {/* Ações após confirmação e avaliação */}
+
         {confirmada && (
           <div className="recuperacao-acoes">
+
+            {/* Correção manual após aprovação */}
+
+            {apresentacaoAvaliacao?.acao === 'PROSSEGUIR' && (
+              <button
+                className="recuperacao-botao-secundario"
+                type="button"
+                onClick={onIniciarEdicao}
+              >
+                Corrigir data manualmente
+              </button>
+            )}
+
+            {/* DEC-G4-26 — Encerrar tentativa */}
+
             <button
               className="recuperacao-botao-secundario"
               type="button"
-              onClick={onIniciarEdicao}
+              onClick={onCancelarTentativa}
             >
-              Corrigir data manualmente
+              Cancelar cadastro
             </button>
+
           </div>
         )}
 

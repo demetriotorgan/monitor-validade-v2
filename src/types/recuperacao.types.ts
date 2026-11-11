@@ -4,6 +4,10 @@ import type {
   EstadoConfirmacao,
 } from './confirmacao.types';
 
+import type {
+  ApresentacaoAvaliacao,
+} from './validacao.types';
+
 /**
  * CT-INT-11 — Recuperação técnica da inferência.
  *
@@ -66,14 +70,7 @@ export interface RecuperacaoValidadeViewProps {
   confirmacaoVigente: DataConfirmadaUsuario | null;
 
 
-  /**
-   * Indica que a edição atual foi iniciada
-   * a partir de uma confirmação anterior.
-   *
-   * Permanece true mesmo após a confirmação
-   * anterior ser invalidada.
-   */
-  reedicaoEmAndamento: boolean;
+  
 
 
   /**
@@ -90,16 +87,22 @@ export interface RecuperacaoValidadeViewProps {
    * Permite iniciar uma nova edição após
    * uma confirmação humana.
    */
-  onIniciarEdicao: () => void;
+  onIniciarEdicao: () => void; 
 
   /**
-   * Cancela uma reedição.
-   *
-   * Sem alteração efetiva:
-   * preserva a confirmação anterior.
-   *
-   * Após invalidação:
-   * não restaura a confirmação anterior.
+ * DEC-G4-26 — Encerra a tentativa atual
+ * e retorna à captura de imagem.
+ */
+  onCancelarTentativa: () => void;
+
+  /**
+ * RF31-05 — Resultado visual da avaliação.
+ */
+  apresentacaoAvaliacao: ApresentacaoAvaliacao | null;
+
+  /**
+   * Executa a ação recomendada pelo RF-31.
    */
-  onCancelarEdicao: () => void;
+  onExecutarAcaoAvaliacao: () => void;
+
 }

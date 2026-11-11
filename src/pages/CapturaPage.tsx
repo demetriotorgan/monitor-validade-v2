@@ -56,10 +56,7 @@ export function CapturaPage() {
     useState<DataConfirmadaUsuario | null>(null);
 
   const [evidenciasAbertas, setEvidenciasAbertas] =
-    useState(false);
-
-  const [reedicaoEmAndamento, setReedicaoEmAndamento] =
-    useState(false);
+    useState(false);  
 
   const [resultadoAvaliacao, setResultadoAvaliacao] =
     useState<ResultadoAvaliacaoValidade | null>(null);
@@ -115,8 +112,7 @@ export function CapturaPage() {
 
     setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
     setValorEdicao('');
-    setEvidenciasAbertas(false);
-    setReedicaoEmAndamento(false);
+    setEvidenciasAbertas(false);    
 
     setResultadoAvaliacao(null);
     setApresentacaoAvaliacao(null);
@@ -147,8 +143,7 @@ export function CapturaPage() {
     };
 
     atualizarConfirmacao(confirmacao);
-    setEstadoConfirmacao('CONFIRMADA');
-    setReedicaoEmAndamento(false);
+    setEstadoConfirmacao('CONFIRMADA');    
     setEdicaoAposBloqueio(false);
 
     // RF-30 + RF-31:
@@ -239,8 +234,7 @@ export function CapturaPage() {
       // DEC-INT-11-01:
       // Recuperação manual após falha técnica.
       setEstadoConfirmacao('EDITANDO');
-      setValorEdicao('');
-      setReedicaoEmAndamento(false);
+      setValorEdicao('');      
 
       setEstado('ERRO');
 
@@ -287,11 +281,7 @@ export function CapturaPage() {
       resposta?.dados.data_validade ??
       '';
 
-    setValorEdicao(valorInicial);
-
-    setReedicaoEmAndamento(
-      confirmacaoAtualRef.current !== null,
-    );
+    setValorEdicao(valorInicial);    
 
     setEstadoConfirmacao('EDITANDO');
   }
@@ -345,11 +335,20 @@ export function CapturaPage() {
     );
   }
 
+  /**
+ * Recuperação humana sem sugestão principal.
+ *
+ * Quando a IA não identifica uma validade,
+ * cancelar a edição encerra a tentativa.
+ */
+
   function cancelarEdicao(): void {
     if (
-      (estado !== 'SUCESSO' && estado !== 'ERRO') ||
-      estadoConfirmacao !== 'EDITANDO'
+      estado === 'SUCESSO' &&
+      resposta?.dados.data_validade === null &&
+      confirmacaoAtualRef.current === null
     ) {
+      encerrarTentativa();
       return;
     }
 
@@ -367,17 +366,18 @@ export function CapturaPage() {
 
     if (confirmacao !== null) {
       setValorEdicao(confirmacao.data_confirmada);
-      setEstadoConfirmacao('CONFIRMADA');
-      setReedicaoEmAndamento(false);
+      setEstadoConfirmacao('CONFIRMADA');      
       return;
     }
 
-    // Recuperação técnica:
-    // não existe sugestão original da IA.
+    /**
+  * Recuperação após falha técnica.
+  *
+  * Sem confirmação vigente, cancelar
+  * encerra a tentativa.
+  */
     if (estado === 'ERRO') {
-      setValorEdicao('');
-      setEstadoConfirmacao('EDITANDO');
-      setReedicaoEmAndamento(false);
+      encerrarTentativa();
       return;
     }
 
@@ -394,9 +394,7 @@ export function CapturaPage() {
       setEstadoConfirmacao(
         'AGUARDANDO_CONFIRMACAO',
       );
-    }
-
-    setReedicaoEmAndamento(false);
+    }    
   }
 
   function alternarEvidencias(
@@ -574,17 +572,17 @@ export function CapturaPage() {
         <RecuperacaoValidadeView
           imagemUrl={imagemUrl}
           mensagemErro={
-            erro ??
-            'Falha técnica não especificada.'
+            erro ?? 'Falha técnica não especificada.'
           }
           estadoConfirmacao={estadoConfirmacao}
           valorEdicao={valorEdicao}
           confirmacaoVigente={confirmacaoVigente}
-          reedicaoEmAndamento={reedicaoEmAndamento}
           onAlterarEdicao={alterarEdicao}
           onConfirmarEdicao={confirmarEdicao}
           onIniciarEdicao={iniciarEdicao}
-          onCancelarEdicao={cancelarEdicao}
+          onCancelarTentativa={encerrarTentativa}
+          apresentacaoAvaliacao={apresentacaoAvaliacao}
+          onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
         />
       )}
     </>
