@@ -259,4 +259,77 @@ describe('G4-03.4 — Casos-limite', () => {
   );
 });
 
+
+describe('DEC-G4-25 — Meses textuais', () => {
+  it.each([
+    ['22 OUT 26', 22, 10, 2026, '2026-10-22'],
+    ['15 NOV 2026', 15, 11, 2026, '2026-11-15'],
+    ['03 DEZ 27', 3, 12, 2027, '2027-12-03'],
+    ['22 out 26', 22, 10, 2026, '2026-10-22'],
+    ['01 JAN 25', 1, 1, 2025, '2025-01-01'],
+    ['28 FEV 26', 28, 2, 2026, '2026-02-28'],
+    ['15 MAR 27', 15, 3, 2027, '2027-03-15'],
+    ['10 ABR 28', 10, 4, 2028, '2028-04-10'],
+    ['05 MAI 29', 5, 5, 2029, '2029-05-05'],
+    ['12 JUN 30', 12, 6, 2030, '2030-06-12'],
+    ['18 JUL 31', 18, 7, 2031, '2031-07-18'],
+    ['20 AGO 32', 20, 8, 2032, '2032-08-20'],
+    ['25 SET 33', 25, 9, 2033, '2033-09-25'],
+  ])(
+    'normaliza %s',
+    (entrada, dia, mes, ano, dataISO) => {
+      const resultado = normalizarData(entrada);
+
+      expect(resultado.sucesso).toBe(true);
+
+      if (!resultado.sucesso) return;
+
+      expect(resultado.valor).toEqual({
+        data_original: entrada,
+        dia,
+        mes,
+        ano,
+        data_iso: dataISO,
+      });
+    },
+  );
+
+  it('rejeita mês textual desconhecido', () => {
+    expect(normalizarData('22 XYZ 26')).toEqual({
+      sucesso: false,
+      data_original: '22 XYZ 26',
+      motivo: 'FORMATO_NAO_SUPORTADO',
+    });
+  });
+
+  it('identifica ano ausente', () => {
+    expect(normalizarData('22 OUT')).toEqual({
+      sucesso: false,
+      data_original: '22 OUT',
+      motivo: 'DATA_INCOMPLETA',
+    });
+  });
+
+  it('identifica ano parcialmente ilegível', () => {
+    expect(normalizarData('22 OUT 2?')).toEqual({
+      sucesso: false,
+      data_original: '22 OUT 2?',
+      motivo: 'DATA_INCOMPLETA',
+    });
+  });
+
+  it('não valida calendário no RF-25', () => {
+    const resultado = normalizarData('31 FEV 26');
+
+    expect(resultado.sucesso).toBe(true);
+
+    if (!resultado.sucesso) return;
+
+    expect(resultado.valor.data_iso).toBe(
+      '2026-02-31',
+    );
+  });
+});
+
+
 });

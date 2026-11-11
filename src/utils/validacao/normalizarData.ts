@@ -1,10 +1,29 @@
-
 import type {
   DataNormalizada,
   ResultadoNormalizacao,
 } from '../../types/validacao.types';
 
 
+/**
+ * DEC-G4-25 — Meses abreviados em português.
+ *
+ * Mapeamento determinístico.
+ * Não realiza inferência contextual.
+ */
+const MESES_ABREVIADOS: Record<string, number> = {
+  JAN: 1,
+  FEV: 2,
+  MAR: 3,
+  ABR: 4,
+  MAI: 5,
+  JUN: 6,
+  JUL: 7,
+  AGO: 8,
+  SET: 9,
+  OUT: 10,
+  NOV: 11,
+  DEZ: 12,
+};
 
 
 /**
@@ -31,6 +50,43 @@ function possuiEstruturaIncompleta(
    * Permite ausência de componentes e
    * caracteres ilegíveis (?) nas posições esperadas.
    */
+
+
+  /**
+   * DEC-G4-25 — Datas com mês textual incompletas.
+   *
+   * Exemplos:
+   * 22 OUT
+   * 22 OUT ?
+   * 22 OUT 2?
+   *
+   * O mês precisa ser reconhecido.
+   * Não completa componentes ausentes.
+   */
+  const estruturaTextualParcial =
+    /^(\d{1,2}|\?{1,2})\s+([A-Za-z]{3})(?:\s+([0-9?]{0,4}))?$/;
+
+  const correspondenciaTextual =
+    texto.match(estruturaTextualParcial);
+
+  if (correspondenciaTextual) {
+    const [, diaTexto, mesTexto, anoTexto] =
+      correspondenciaTextual;
+
+    const mesReconhecido =
+      MESES_ABREVIADOS[mesTexto.toUpperCase()];
+
+    if (mesReconhecido !== undefined) {
+      return (
+        diaTexto.includes('?') ||
+        anoTexto === undefined ||
+        anoTexto.includes('?') ||
+        (anoTexto.length !== 2 &&
+          anoTexto.length !== 4)
+      );
+    }
+  }
+
   const estruturaISOParcial =
     /^([0-9?]{4})-([0-9?]{0,2})(?:-([0-9?]{0,2}))?$/;
 
@@ -108,52 +164,97 @@ function possuiEstruturaIncompleta(
 }
 
 
+
 /**
  * RF-25 — Normalização estrutural.
+ *
+ * DEC-G4-25:
+ * Suporte adicional a meses abreviados
+ * em português.
+ *
+ * Não executa validação calendárica.
  */
 export function normalizarData(
   dataTexto: string
 ): ResultadoNormalizacao {
   const texto = dataTexto.trim();
 
-  const formatoISO = /^(\d{4})-(\d{2})-(\d{2})$/;
+  const formatoISO =
+    /^(\d{4})-(\d{2})-(\d{2})$/;
 
   const formatoNacional =
     /^(\d{1,2})([./-])(\d{1,2})\2(\d{2}|\d{4})$/;
+
+  const formatoTextual =
+    /^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{2}|\d{4})$/;
 
   let dia: number;
   let mes: number;
   let ano: number;
 
-  const correspondenciaISO = texto.match(formatoISO);
+  const correspondenciaISO =
+    texto.match(formatoISO);
 
   if (correspondenciaISO) {
     ano = Number(correspondenciaISO[1]);
     mes = Number(correspondenciaISO[2]);
     dia = Number(correspondenciaISO[3]);
+
   } else {
     const correspondenciaNacional =
       texto.match(formatoNacional);
 
-    if (!correspondenciaNacional) {
-      return {
-        sucesso: false,
-        data_original: dataTexto,
-        motivo: possuiEstruturaIncompleta(texto)
-          ? 'DATA_INCOMPLETA'
-          : 'FORMATO_NAO_SUPORTADO',
-      };
+    if (correspondenciaNacional) {
+      dia = Number(correspondenciaNacional[1]);
+      mes = Number(correspondenciaNacional[3]);
+
+      const anoTexto =
+        correspondenciaNacional[4];
+
+      ano =
+        anoTexto.length === 2
+          ? 2000 + Number(anoTexto)
+          : Number(anoTexto);
+
+    } else {
+      const correspondenciaTextual =
+        texto.match(formatoTextual);
+
+      if (!correspondenciaTextual) {
+        return {
+          sucesso: false,
+          data_original: dataTexto,
+          motivo: possuiEstruturaIncompleta(texto)
+            ? 'DATA_INCOMPLETA'
+            : 'FORMATO_NAO_SUPORTADO',
+        };
+      }
+
+      const mesTexto =
+        correspondenciaTextual[2].toUpperCase();
+
+      const mesReconhecido =
+        MESES_ABREVIADOS[mesTexto];
+
+      if (mesReconhecido === undefined) {
+        return {
+          sucesso: false,
+          data_original: dataTexto,
+          motivo: 'FORMATO_NAO_SUPORTADO',
+        };
+      }
+
+      dia = Number(correspondenciaTextual[1]);
+      mes = mesReconhecido;
+
+      const anoTexto =
+        correspondenciaTextual[3];
+
+      ano =
+        anoTexto.length === 2
+          ? 2000 + Number(anoTexto)
+          : Number(anoTexto);
     }
-
-    dia = Number(correspondenciaNacional[1]);
-    mes = Number(correspondenciaNacional[3]);
-
-    const anoTexto = correspondenciaNacional[4];
-
-    ano =
-      anoTexto.length === 2
-        ? 2000 + Number(anoTexto)
-        : Number(anoTexto);
   }
 
   const dataISO = [
