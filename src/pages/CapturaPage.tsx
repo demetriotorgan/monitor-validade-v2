@@ -11,6 +11,12 @@ import { processarValidade } from '../services/validadeApi';
 
 import type { ResultadoRecorte } from '../services/recorte';
 
+import { avaliarValidade } from '../utils/validacao/avaliarValidade';
+
+import { obterDataReferencia } from '../utils/validacao/obterDataReferencia';
+
+import { obterApresentacaoAvaliacao } from '../utils/validacao/obterApresentacaoAvaliacao';
+
 import type {
   EstadoInferencia,
   RespostaInferenciaSucesso,
@@ -21,6 +27,11 @@ import type {
   EstadoConfirmacao,
   OrigemConfirmacao,
 } from '../types/confirmacao.types';
+
+import type {
+  ResultadoAvaliacaoValidade,
+  ApresentacaoAvaliacao,
+} from '../types/validacao.types';
 
 export function CapturaPage() {
   const [estado, setEstado] =
@@ -49,6 +60,12 @@ export function CapturaPage() {
 
   const [reedicaoEmAndamento, setReedicaoEmAndamento] =
     useState(false);
+
+  const [, setResultadoAvaliacao] =
+    useState<ResultadoAvaliacaoValidade | null>(null);
+
+  const [, setApresentacaoAvaliacao] =
+    useState<ApresentacaoAvaliacao | null>(null);
 
   const urlRef = useRef<string | null>(null);
   const processandoRef = useRef(false);
@@ -94,6 +111,9 @@ export function CapturaPage() {
     setValorEdicao('');
     setEvidenciasAbertas(false);
     setReedicaoEmAndamento(false);
+
+    setResultadoAvaliacao(null);
+    setApresentacaoAvaliacao(null);
   }
 
   function registrarConfirmacao(
@@ -122,6 +142,10 @@ export function CapturaPage() {
     atualizarConfirmacao(confirmacao);
     setEstadoConfirmacao('CONFIRMADA');
     setReedicaoEmAndamento(false);
+
+    // RF-30 + RF-31:
+    // Avaliação após confirmação humana.
+    executarAvaliacao(confirmacao);
 
     console.log(
       'Data confirmada pelo operador:',
@@ -225,7 +249,7 @@ export function CapturaPage() {
     if (
       estado !== 'SUCESSO' ||
       estadoConfirmacao !==
-        'AGUARDANDO_CONFIRMACAO'
+      'AGUARDANDO_CONFIRMACAO'
     ) {
       return;
     }
@@ -284,6 +308,10 @@ export function CapturaPage() {
     if (confirmacaoAtualRef.current !== null) {
       atualizarConfirmacao(null);
       travaConfirmacaoRef.current = false;
+
+      // A avaliação anterior deixa de ser vigente.
+      setResultadoAvaliacao(null);
+      setApresentacaoAvaliacao(null);
     }
   }
 
@@ -357,6 +385,31 @@ export function CapturaPage() {
     abertas: boolean,
   ): void {
     setEvidenciasAbertas(abertas);
+  }
+
+  function executarAvaliacao(
+    confirmacao: DataConfirmadaUsuario,
+  ): void {
+    const candidatas =
+      resposta?.dados.datas_candidatas ?? [];
+
+    const dataReferenciaISO =
+      obterDataReferencia();
+
+    const resultado = avaliarValidade({
+      dataConfirmada: confirmacao.data_confirmada,
+      candidatas,
+      dataReferenciaISO,
+    });
+
+    const apresentacao =
+      obterApresentacaoAvaliacao(resultado);
+
+    setResultadoAvaliacao(resultado);
+    setApresentacaoAvaliacao(apresentacao);
+
+    console.log('RF-30 — Resultado:', resultado);
+    console.log('RF-31 — Apresentação:', apresentacao);
   }
 
   return (

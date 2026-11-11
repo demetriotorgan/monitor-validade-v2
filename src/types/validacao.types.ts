@@ -271,3 +271,18 @@ export type ResultadoAvaliacaoValidade =
       acao_recomendada: 'REVISAR_FABRICACAO';
       data_normalizada?: never;
     };
+
+/**
+ * RF-31 — Apresentação da avaliação de validade.
+ *
+ * CT-RF31-01 — Revisão 3
+ * DEC-G4-22, DEC-G4-23 e DEC-G4-24.
+ *
+ * Contrato responsável exclusivamente
+ * pelas informações de apresentação.
+ */
+export interface ApresentacaoAvaliacao {
+  mensagem: string;
+  acao: AcaoRecomendada;
+  rotuloBotao: string;
+}
