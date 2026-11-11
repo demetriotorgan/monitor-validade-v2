@@ -1,4 +1,3 @@
-
 import type {
   ConfirmacaoValidadeViewProps,
 } from '../../types/confirmacao.types';
@@ -18,6 +17,9 @@ export function ConfirmacaoValidadeView({
   onAlterarEdicao,
   onConfirmarEdicao,
   onCancelarEdicao,
+  apresentacaoAvaliacao,
+  onExecutarAcaoAvaliacao,
+  onCancelarTentativa
 }: ConfirmacaoValidadeViewProps) {
 
   // ---- ESTADO VISUAL ----
@@ -104,10 +106,33 @@ export function ConfirmacaoValidadeView({
             aria-live="polite"
           >
             {possuiConfirmacaoVigente
-              ? 'Data confirmada pelo operador — aguardando validação'
+              ? apresentacaoAvaliacao !== null
+                ? 'Data confirmada e avaliada'
+                : 'Data confirmada pelo operador — aguardando validação'
               : 'Aguardando confirmação do operador'}
           </p>
         </section>
+
+        {/* RF31-05 — Resultado da avaliação */}
+        {estadoConfirmacao === 'CONFIRMADA' &&
+          apresentacaoAvaliacao !== null && (
+            <section
+              className="resultado-avaliacao"
+              aria-live="polite"
+            >
+              <p className="resultado-avaliacao__mensagem">
+                {apresentacaoAvaliacao.mensagem}
+              </p>
+
+              <button
+                type="button"
+                className="resultado-avaliacao__botao"
+                onClick={onExecutarAcaoAvaliacao}
+              >
+                {apresentacaoAvaliacao.rotuloBotao}
+              </button>
+            </section>
+          )}
 
         {/* ---- EVIDÊNCIAS DA IA ---- */}
 
@@ -240,15 +265,32 @@ export function ConfirmacaoValidadeView({
 
           {/* ESTADO: CONFIRMADA */}
 
-          {confirmada && (
-            <button
-              type="button"
-              className="confirmacao-botao-secundario"
-              onClick={onIniciarEdicao}
-            >
-              Corrigir data manualmente
-            </button>
-          )}
+          {/* Correção manual após aprovação */}
+
+          {confirmada &&
+          (apresentacaoAvaliacao === null ||
+            apresentacaoAvaliacao?.acao === 'PROSSEGUIR') && (
+              <button
+                type="button"
+                className="confirmacao-botao-secundario"
+                onClick={onIniciarEdicao}
+              >
+                Corrigir data manualmente
+              </button>
+            )}
+
+          {/* DEC-G4-26 — Cancelamento da tentativa */}
+
+          {confirmada &&
+            apresentacaoAvaliacao !== null && (
+              <button
+                type="button"
+                className="confirmacao-botao-secundario"
+                onClick={onCancelarTentativa}
+              >
+                Cancelar cadastro
+              </button>
+            )}
 
         </section>
       </section>

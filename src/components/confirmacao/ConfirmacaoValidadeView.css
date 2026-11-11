@@ -161,3 +161,29 @@
     padding: 16px;
   }
 }
+
+.resultado-avaliacao {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.resultado-avaliacao__mensagem {
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.resultado-avaliacao__botao {
+  padding: 0.65rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resultado-avaliacao__botao:hover {
+  background-color: #1d4ed8;
+}

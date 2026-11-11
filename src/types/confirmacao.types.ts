@@ -8,6 +8,10 @@ export type OrigemConfirmacao =
     | 'CONFIRMACAO_DIRETA'
     | 'CORRECAO_MANUAL';
 
+import type {
+    ApresentacaoAvaliacao,
+} from './validacao.types';
+
 /**
  * RF-23 — Resultado da confirmação humana.
  *
@@ -119,4 +123,21 @@ export interface ConfirmacaoValidadeViewProps {
 
     evidenciasAbertas: boolean;
     onAlternarEvidencias: (abertas: boolean) => void;
+
+    /**
+ * RF31-05 — Resultado da avaliação
+ * apresentado após confirmação humana.
+ */
+    apresentacaoAvaliacao: ApresentacaoAvaliacao | null;
+
+    /**
+     * Executa a ação recomendada pelo RF-31.
+     */
+    onExecutarAcaoAvaliacao: () => void;
+
+    /**
+ * DEC-G4-26 — Encerramento explícito
+ * da tentativa após bloqueio ou revisão.
+ */
+    onCancelarTentativa: () => void;
 }

@@ -61,11 +61,17 @@ export function CapturaPage() {
   const [reedicaoEmAndamento, setReedicaoEmAndamento] =
     useState(false);
 
-  const [, setResultadoAvaliacao] =
+  const [resultadoAvaliacao, setResultadoAvaliacao] =
     useState<ResultadoAvaliacaoValidade | null>(null);
 
-  const [, setApresentacaoAvaliacao] =
+  const [apresentacaoAvaliacao, setApresentacaoAvaliacao] =
     useState<ApresentacaoAvaliacao | null>(null);
+  /**
+* DEC-G4-24 — Identifica edição iniciada
+* após bloqueio do RF-30.
+*/
+  const [edicaoAposBloqueio, setEdicaoAposBloqueio] =
+    useState(false);
 
   const urlRef = useRef<string | null>(null);
   const processandoRef = useRef(false);
@@ -114,6 +120,7 @@ export function CapturaPage() {
 
     setResultadoAvaliacao(null);
     setApresentacaoAvaliacao(null);
+    setEdicaoAposBloqueio(false);
   }
 
   function registrarConfirmacao(
@@ -142,6 +149,7 @@ export function CapturaPage() {
     atualizarConfirmacao(confirmacao);
     setEstadoConfirmacao('CONFIRMADA');
     setReedicaoEmAndamento(false);
+    setEdicaoAposBloqueio(false);
 
     // RF-30 + RF-31:
     // Avaliação após confirmação humana.
@@ -345,6 +353,16 @@ export function CapturaPage() {
       return;
     }
 
+    /**
+ * DEC-G4-24:
+ * Cancelar edição iniciada após bloqueio
+ * encerra a tentativa de cadastro.
+ */
+    if (edicaoAposBloqueio) {
+      encerrarTentativa();
+      return;
+    }
+
     const confirmacao = confirmacaoAtualRef.current;
 
     if (confirmacao !== null) {
@@ -412,6 +430,81 @@ export function CapturaPage() {
     console.log('RF-31 — Apresentação:', apresentacao);
   }
 
+
+  /**
+   * RF31-05 — Executa a ação recomendada
+   * pela avaliação consolidada.
+   *
+   * A aprovação não executa cadastro
+   * automaticamente.
+   */
+  function executarAcaoAvaliacao(): void {
+    if (
+      estadoConfirmacao !== 'CONFIRMADA' ||
+      confirmacaoAtualRef.current === null ||
+      resultadoAvaliacao === null ||
+      apresentacaoAvaliacao === null
+    ) {
+      return;
+    }
+
+    switch (resultadoAvaliacao.acao_recomendada) {
+      case 'CORRIGIR_DATA':
+      case 'REVISAR_FABRICACAO':
+        setEdicaoAposBloqueio(true);
+        iniciarEdicao();
+        return;
+
+      case 'PROSSEGUIR':
+        if (resultadoAvaliacao.situacao !== 'APROVADO') {
+          return;
+        }
+
+        // O destino do cadastro será integrado
+        // quando essa etapa estiver definida.
+        console.log(
+          'Validade aprovada para prosseguimento:',
+          resultadoAvaliacao.data_normalizada,
+        );
+        return;
+    }
+  }
+
+
+  /**
+   * DEC-G4-26 — Encerra a tentativa atual
+   * e retorna à captura de imagem.
+   */
+  function encerrarTentativa(): void {
+    // Não encerrar enquanto uma inferência
+    // estiver em processamento.
+    if (processandoRef.current) {
+      return;
+    }
+
+    // Libera a URL temporária da imagem.
+    if (urlRef.current !== null) {
+      URL.revokeObjectURL(urlRef.current);
+      urlRef.current = null;
+    }
+
+    // Descarta a imagem da tentativa.
+    resultadoRecorteRef.current = null;
+    imagemAceitaRef.current = false;
+
+    setImagemUrl(null);
+    setResposta(null);
+    setErro(null);
+
+    // Reinicia confirmação e avaliação.
+    reiniciarConfirmacao();
+
+    // Retorna ao estado inicial.
+    setEstado('AGUARDANDO_IMAGEM');
+  }
+
+
+
   return (
     <>
       {estado === 'AGUARDANDO_IMAGEM' && (
@@ -471,6 +564,9 @@ export function CapturaPage() {
             onAlterarEdicao={alterarEdicao}
             onConfirmarEdicao={confirmarEdicao}
             onCancelarEdicao={cancelarEdicao}
+            apresentacaoAvaliacao={apresentacaoAvaliacao}
+            onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
+            onCancelarTentativa={encerrarTentativa}
           />
         )}
 
