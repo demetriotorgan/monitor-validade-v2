@@ -1,0 +1,44 @@
+/* src/components/BuscaProduto/BuscaProduto.css */
+.busca-produto {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.busca-produto-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.busca-produto-icone {
+  position: absolute;
+  left: 0.75rem;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+.busca-produto-input {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.busca-produto-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.busca-produto-feedback {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.busca-produto-feedback--erro {
+  color: #ef4444;
+}
