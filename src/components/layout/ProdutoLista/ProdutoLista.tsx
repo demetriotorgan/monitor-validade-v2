@@ -3,6 +3,9 @@ import { forwardRef } from 'react';
 import { PackageSearch, Pencil, Trash2 } from 'lucide-react';
 import './ProdutoLista.css';
 import { type Produto, type Status } from '../../../hooks/useListarProdutos';
+import { formatarData } from '../../../utils/datas/formatarData';
+import Lista from '../Lista/Lista';
+
 
 interface ListaProdutosProps {
   produtos: Produto[];
@@ -18,16 +21,6 @@ const ProdutosLista = forwardRef<HTMLDivElement, ListaProdutosProps>(
 
     const handleDeletar = (produto: Produto) => {
       console.log('Deletar produto:', produto);
-    };
-
-    const formatarData = (dataIso: string) => {
-      return new Date(dataIso).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
     };
 
     return (
@@ -56,16 +49,19 @@ const ProdutosLista = forwardRef<HTMLDivElement, ListaProdutosProps>(
           </div>
         )}
 
-        {status === 'success' && produtos.length === 0 && (
-          <div className="produtos-lista-feedback produtos-lista-feedback--info">
-            Nenhum produto cadastrado ainda.
-          </div>
-        )}
-
-        {status === 'success' && produtos.length > 0 && (
-          <ul className="produtos-lista">
-            {produtos.map((produto) => (
-              <li key={produto._id} className="produto-card">
+        {status === 'success' && (
+          <Lista
+            items={produtos}
+            keyExtractor={(produto) => produto._id}
+            className="produtos-lista"
+            itemClassName="produto-card"
+            renderEmpty={() => (
+              <div className="produtos-lista-feedback produtos-lista-feedback--info">
+                Nenhum produto cadastrado ainda.
+              </div>
+            )}
+            renderItem={(produto) => (
+              <>
                 <div className="produto-card-info">
                   <h2 className="produto-card-nome">{produto.nome}</h2>
                   <span className="produto-card-codigo">
@@ -95,9 +91,9 @@ const ProdutosLista = forwardRef<HTMLDivElement, ListaProdutosProps>(
                     <Trash2 size={18} aria-hidden="true" />
                   </button>
                 </div>
-              </li>
-            ))}
-          </ul>
+              </>
+            )}
+          />
         )}
       </div>
     );
