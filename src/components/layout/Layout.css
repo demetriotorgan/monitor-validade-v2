@@ -5,6 +5,7 @@
 .layout {
   width: 100%;
   max-width: 480px;
+  height: 100vh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -16,5 +17,6 @@
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   background-color: #f8fafc;
 }

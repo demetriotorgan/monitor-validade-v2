@@ -4,6 +4,8 @@ import './Produtos.css';
 import Spinner from '../Spinner/Spinner';
 import Resultado from '../Mensagem/Resultado';
 import { useCadastroProduto } from '../../../hooks/useCadastroProduto';
+import ProdutosForm from '../ProdutoForm/ProdutoForm';
+import ProdutosLista from '../ProdutoLista/ProdutoLista';
 
 
 const Produtos = () => {
@@ -31,56 +33,16 @@ const {formData, erros, status, mensagem, modalAberto, handleChange, handleSubmi
         </div>
       </header>
 
-      <form className="formulario-form" onSubmit={handleSubmit} noValidate>
-        <div className="formulario-group">
-          <label htmlFor="codigoBarras" className="formulario-label">
-            Código de Barras
-          </label>
-          <div className="formulario-input-wrapper">
+    <ProdutosForm
+        formData={formData}
+        erros={erros}
+        status={status}
+        handleChange={handleChange}
+        handleSubmit={handleSubmit}
+      />
 
-            <input
-              id="codigoBarras"
-              name="codigoBarras"
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="Digite o código de barras"
-              className={`formulario-input ${erros.codigoBarras ? 'formulario-input--erro' : ''}`}
-              value={formData.codigoBarras}
-              onChange={handleChange}
-            />
-          </div>
-          {erros.codigoBarras && <span className="form-error">{erros.codigoBarras}</span>}
-        </div>
+      <ProdutosLista />
 
-        <div className="formulario-group">
-          <label htmlFor="nome" className="formulario-label">
-            Nome do Produto
-          </label>
-          <input
-            id="nome"
-            name="nome"
-            type="text"
-            autoComplete="off"
-            placeholder="Digite o nome do produto"
-            maxLength={255}
-            className={`formulario-input ${erros.nome ? 'formulario-input--erro' : ''}`}
-            value={formData.nome}
-            onChange={handleChange}
-          />
-          {erros.nome && <span className="form-error">{erros.nome}</span>}
-          <span className="formulario-hint">{formData.nome.length}/255 caracteres</span>
-        </div>
-
-
-        <button
-          type="submit"
-          className="btn-submit"
-          disabled={status === 'loading'}
-        >
-          {status === 'loading' ? 'Cadastrando...' : 'Cadastrar Produto'}
-        </button>
-      </form>
     </div>
   );
 };
