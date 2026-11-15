@@ -7,9 +7,9 @@ import './NavBar.css';
 const NavBar = () => {
   const navItems = [
     { to: '/', label: 'Início', icon: Home },
-    { to: '/registrar-validade', label: 'Validade', icon: Camera },
-    { to: '/cadastrar-produto', label: 'Produtos', icon: Package },
-    { to: '/ver-validades', label: 'Monitoramento', icon: BarChart3 },
+    { to: '/validade', label: 'Validade', icon: Camera },
+    { to: '/produtos', label: 'Produtos', icon: Package },
+    { to: '/monitoramento', label: 'Monitoramento', icon: BarChart3 },
   ];
 
   return (
