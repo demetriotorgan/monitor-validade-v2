@@ -14,8 +14,8 @@
   width: 64px;
   height: 64px;
 
-  border: 6px solid rgb(255 255 255 / 25%);
-  border-top-color: var(--color-primary);
+  border: 6px solid var(--cor-primaria-escura);
+  border-top-color: var(--cor-primaria);
   border-radius: 50%;
 
   animation: spinner-rotation 0.8s linear infinite;

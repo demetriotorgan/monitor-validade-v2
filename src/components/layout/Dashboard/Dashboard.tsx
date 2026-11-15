@@ -18,7 +18,7 @@ const Dashboard = () => {
       />
 
       <NavCard
-        nome='Monitor validades'
+        nome='Monitorar validades'
         icone={BarChart3}
         to='/monitoramento'
       />

@@ -40,15 +40,18 @@
   color: #64748b;
   text-decoration: none;
   transition: color 150ms ease-in-out;
+  text-decoration: none;
 }
 
 .navbar-link:hover,
 .navbar-link:focus {
   color: #2563eb;
+  text-decoration: none;
 }
 
 .navbar-link--active {
   color: #2563eb;
+  text-decoration: none;
 }
 
 .navbar-icon {

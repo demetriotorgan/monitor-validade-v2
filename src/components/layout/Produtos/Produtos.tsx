@@ -1,97 +1,13 @@
 // src/pages/Produtos/Produtos.tsx
-
-import { useState, type FormEvent, type ChangeEvent } from 'react';
 import { PackagePlus } from 'lucide-react';
 import './Produtos.css';
-import api from '../../../services/api';
-import axios from 'axios';
 import Spinner from '../Spinner/Spinner';
 import Resultado from '../Mensagem/Resultado';
+import { useCadastroProduto } from '../../../hooks/useCadastroProduto';
 
-interface ProdutoFormData {
-  codigoBarras: string;
-  nome: string;
-}
-
-const form = {
-  codigoBarras: '',
-  nome: ''
-}
 
 const Produtos = () => {
-  const [formData, setFormData] = useState<ProdutoFormData>(form);
-
-  const [erros, setErros] = useState<Partial<ProdutoFormData>>({});
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-  const [mensagem, setMensagem] = useState('');
-  const [modalAberto, setModalAberto] = useState(false);
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErros((prev) => ({ ...prev, [name]: '' }));
-  };
-
-  const validar = (): boolean => {
-    const novosErros: Partial<ProdutoFormData> = {};
-
-    if (!formData.codigoBarras.trim()) {
-      novosErros.codigoBarras = 'O código de barras é obrigatório';
-    }
-
-    if (!formData.nome.trim()) {
-      novosErros.nome = 'O nome do produto é obrigatório';
-    } else if (formData.nome.length > 255) {
-      novosErros.nome = 'O nome deve ter no máximo 255 caracteres';
-    }
-
-    setErros(novosErros);
-    return Object.keys(novosErros).length === 0;
-  };
-
-  const fecharModal = ()=>{
-    setModalAberto(false);
-    setMensagem('');
-    setStatus('idle');
-  }
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    //1. Validando formulario
-    if (!validar()) return;
-
-    //2. Confirmando registro
-    const confirmar = window.confirm("Deseja realmente cadastrar esse produto?");
-    if(!confirmar) return;
-
-    //3. Setando estado loading
-    setStatus('loading');
-    setMensagem('');
-
-    //4. Salvando no registro no banco
-    try {
-      await api.post('/salvarProduto', formData)
-
-      //5. Confirmando sucesso do cadastro
-      setStatus('success');
-      setMensagem('Produto cadastrado com sucesso!');
-      setModalAberto(true);
-      setFormData(form);
-    } catch (error) {
-      setStatus('error');
-      if (axios.isAxiosError(error)) {
-        setMensagem(
-          error.response?.data?.message ||
-          error.response?.data?.erro ||
-          'Erro ao cadastrar produto'
-        )
-      } else {
-        setMensagem(error instanceof Error ? error.message : 'Erro inesperado');
-      }
-      setModalAberto(true);
-    }
-  };
+const {formData, erros, status, mensagem, modalAberto, handleChange, handleSubmit, fecharModal} = useCadastroProduto();
 
   return (
     <div className="formulario-container">
