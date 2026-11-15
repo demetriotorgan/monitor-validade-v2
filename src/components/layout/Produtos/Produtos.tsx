@@ -1,23 +1,30 @@
 // src/pages/Produtos/Produtos.tsx
 
 import { useState, type FormEvent, type ChangeEvent } from 'react';
-import { PackagePlus} from 'lucide-react';
+import { PackagePlus } from 'lucide-react';
 import './Produtos.css';
+import api from '../../../services/api';
+import axios from 'axios';
+import Spinner from '../Spinner/Spinner';
+import Resultado from '../Mensagem/Resultado';
 
 interface ProdutoFormData {
   codigoBarras: string;
   nome: string;
 }
 
+const form = {
+  codigoBarras: '',
+  nome: ''
+}
+
 const Produtos = () => {
-  const [formData, setFormData] = useState<ProdutoFormData>({
-    codigoBarras: '',
-    nome: '',
-  });
+  const [formData, setFormData] = useState<ProdutoFormData>(form);
 
   const [erros, setErros] = useState<Partial<ProdutoFormData>>({});
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [mensagem, setMensagem] = useState('');
+  const [modalAberto, setModalAberto] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -42,37 +49,62 @@ const Produtos = () => {
     return Object.keys(novosErros).length === 0;
   };
 
+  const fecharModal = ()=>{
+    setModalAberto(false);
+    setMensagem('');
+    setStatus('idle');
+  }
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    //1. Validando formulario
     if (!validar()) return;
 
+    //2. Confirmando registro
+    const confirmar = window.confirm("Deseja realmente cadastrar esse produto?");
+    if(!confirmar) return;
+
+    //3. Setando estado loading
     setStatus('loading');
     setMensagem('');
 
+    //4. Salvando no registro no banco
     try {
-      const response = await fetch('/api/produtos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      await api.post('/salvarProduto', formData)
 
-      if (!response.ok) {
-        const erro = await response.json().catch(() => ({ message: 'Erro ao cadastrar produto' }));
-        throw new Error(erro.message || 'Erro ao cadastrar produto');
-      }
-
+      //5. Confirmando sucesso do cadastro
       setStatus('success');
       setMensagem('Produto cadastrado com sucesso!');
-      setFormData({ codigoBarras: '', nome: '' });
+      setModalAberto(true);
+      setFormData(form);
     } catch (error) {
       setStatus('error');
-      setMensagem(error instanceof Error ? error.message : 'Erro inesperado');
+      if (axios.isAxiosError(error)) {
+        setMensagem(
+          error.response?.data?.message ||
+          error.response?.data?.erro ||
+          'Erro ao cadastrar produto'
+        )
+      } else {
+        setMensagem(error instanceof Error ? error.message : 'Erro inesperado');
+      }
+      setModalAberto(true);
     }
   };
 
   return (
     <div className="formulario-container">
+      <Spinner loading={status === 'loading'} />
+
+        {modalAberto && (
+          <Resultado 
+            mensagem={mensagem}
+            tipo={status === 'success' ? 'sucesso' : 'erro'}
+            onClose={fecharModal}
+          />
+        )}
+
       <header className="formulario-header">
         <div className="formulario-header-icon">
           <PackagePlus size={24} aria-hidden="true" />
@@ -89,7 +121,7 @@ const Produtos = () => {
             Código de Barras
           </label>
           <div className="formulario-input-wrapper">
-            
+
             <input
               id="codigoBarras"
               name="codigoBarras"
@@ -124,16 +156,6 @@ const Produtos = () => {
           <span className="formulario-hint">{formData.nome.length}/255 caracteres</span>
         </div>
 
-        {mensagem && (
-          <div
-            className={`mensagem ${status === 'success' ? 'mensagem--sucesso' : ''} ${
-              status === 'error' ? 'mensagem--erro' : ''
-            }`}
-            role="status"
-          >
-            {mensagem}
-          </div>
-        )}
 
         <button
           type="submit"

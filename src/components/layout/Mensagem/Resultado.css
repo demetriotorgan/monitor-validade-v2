@@ -1,0 +1,143 @@
+
+.resultado-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px;
+  background-color: rgb(0 0 0 / 60%);
+
+  animation: resultado-fade-in 0.2s ease-out;
+}
+
+.resultado-modal {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 24px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+
+  background-color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 20%);
+
+  font-family: var(--font-primary), sans-serif;
+  text-align: center;
+
+  animation: resultado-entrar 0.25s ease-out;
+}
+
+.resultado-icone {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+}
+
+.resultado-icone-sucesso {
+  color: #16803c;
+  background-color: #e8f7ed;
+}
+
+.resultado-icone-erro {
+  color: #c62828;
+  background-color: #fdecec;
+}
+
+.resultado-modal h2 {
+  margin: 0;
+  color: #202124;
+
+  font-family: var(--font-primary), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.resultado-modal p {
+  margin: 0;
+  color: #5f6368;
+
+  font-family: var(--font-secondary), sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+.resultado-botao {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  padding: 12px 20px;
+
+  border: none;
+  border-radius: 10px;
+
+  background-color: var(--color-primary);
+  color: #fff;
+
+  font-family: var(--font-primary), sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.resultado-botao:hover {
+  background-color: var(--color-primary-light);
+}
+
+.resultado-botao:active {
+  transform: scale(0.98);
+}
+
+.resultado-botao:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+@keyframes resultado-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes resultado-entrar {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resultado-overlay,
+  .resultado-modal {
+    animation: none;
+  }
+
+  .resultado-botao {
+    transition: none;
+  }
+}
