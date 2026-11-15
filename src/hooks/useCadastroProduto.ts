@@ -9,6 +9,10 @@ interface ProdutoFormData {
   nome: string;
 }
 
+interface UsecadastroProdutoOptions{
+  onSucesso?: ()=>void;
+}
+
 const INITIAL_FORM: ProdutoFormData = {
   codigoBarras: '',
   nome: '',
@@ -16,7 +20,7 @@ const INITIAL_FORM: ProdutoFormData = {
 
 type Status = 'idle' | 'loading' | 'success' | 'error';
 
-export const useCadastroProduto = () => {
+export const useCadastroProduto = (options?:UsecadastroProdutoOptions) => {
   const [formData, setFormData] = useState<ProdutoFormData>(INITIAL_FORM);
   const [erros, setErros] = useState<Partial<ProdutoFormData>>({});
   const [status, setStatus] = useState<Status>('idle');
@@ -74,6 +78,7 @@ export const useCadastroProduto = () => {
       setMensagem('Produto cadastrado com sucesso!');
       setModalAberto(true);
       resetForm();
+      options?.onSucesso?.();
     } catch (error) {
       setStatus('error');
 
