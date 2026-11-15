@@ -12,47 +12,6 @@
     "Segoe UI", sans-serif;
 }
 
-/* Cabeçalho */
-
-.camera-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 20px 24px;
-}
-
-.camera-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.camera-brand-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
-  background: #2373f4;
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.camera-brand h1 {
-  margin: 0;
-  font-size: 21px;
-  font-weight: 750;
-}
-
-.camera-brand p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 13px;
-}
-
 /* Conteúdo */
 
 .camera-content {

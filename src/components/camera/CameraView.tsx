@@ -36,17 +36,7 @@ const CameraView = ({
     cameraAbrindo || capturando || recortando;
 
   return (
-    <main className="camera-page">
-      <header className="camera-header">
-        <div className="camera-brand">
-          <span className="camera-brand-icon">CV</span>
-
-          <div>
-            <h1>Leitor de Validade</h1>
-            <p>Capture a validade do produto</p>
-          </div>
-        </div>
-      </header>
+    <main className="camera-page">     
 
       <section className="camera-content">
         <section className="camera-section">

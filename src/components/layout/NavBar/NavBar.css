@@ -1,0 +1,63 @@
+/* src/components/layout/NavBar/NavBar.css */
+
+/* =========================================================
+   NavBar.css — Bottom navigation fixo na base
+   ========================================================= */
+
+.navbar {
+  flex-shrink: 0;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  z-index: var(--z-sticky, 200);
+}
+
+.navbar-list {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  list-style: none;
+  margin: 0;
+  padding: 8px 0;
+  height: 64px;
+}
+
+.navbar-item {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 0;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 150ms ease-in-out;
+}
+
+.navbar-link:hover,
+.navbar-link:focus {
+  color: #2563eb;
+}
+
+.navbar-link--active {
+  color: #2563eb;
+}
+
+.navbar-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.navbar-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+}

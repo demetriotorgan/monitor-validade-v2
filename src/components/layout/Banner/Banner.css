@@ -1,0 +1,46 @@
+/* =========================================================
+   Banner.css — Cabeçalho fixo no topo
+   ========================================================= */
+
+.camera-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+.camera-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.camera-brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #2373f4;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.camera-brand h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.camera-brand p {
+  margin: 2px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.3;
+}
