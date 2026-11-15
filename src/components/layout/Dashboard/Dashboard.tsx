@@ -22,8 +22,6 @@ const Dashboard = () => {
         icone={BarChart3}
         to='/monitoramento'
       />
-
-
     </div>
   )
 }

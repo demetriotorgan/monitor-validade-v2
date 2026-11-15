@@ -227,6 +227,203 @@ svg {
   border-width: 0;
 }
 
+/* src/pages/Produtos/Produtos.css */
+
+/* =========================================================
+   Elementos de Formulario
+   ========================================================= */
+
+.formulario-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacamento-6);
+  width: 100%;
+}
+
+/* Cabeçalho da página */
+.formulario-header {
+  display: flex;
+  align-items: center;
+  gap: var(--espacamento-3);
+}
+
+.formulario-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background-color: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+  border-radius: var(--raio-borda-lg);
+}
+
+.formulario-title {
+  margin: 0;
+  font-size: var(--tamanho-texto-xl);
+  font-weight: 700;
+  color: var(--cor-texto);
+  line-height: 1.2;
+}
+
+.formulario-subtitle {
+  margin: var(--espacamento-1) 0 0;
+  font-size: var(--tamanho-texto-sm);
+  color: var(--cor-texto-secundario);
+  line-height: 1.4;
+}
+
+/* Formulário */
+.formulario-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacamento-5);
+  padding: var(--espacamento-5);
+  background-color: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda-lg);
+  box-shadow: var(--sombra-sm);
+}
+
+.formulario-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacamento-2);
+}
+
+.formulario-label {
+  font-size: var(--tamanho-texto-sm);
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.formulario-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.formulario-input-icon {
+  position: absolute;
+  left: var(--espacamento-3);
+  color: var(--cor-texto-secundario);
+  pointer-events: none;
+}
+
+.formulario-input {
+  width: 100%;
+  padding: var(--espacamento-3) var(--espacamento-4);
+  font-size: var(--tamanho-texto-base);
+  color: var(--cor-texto);
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-borda-md);
+  transition:
+    border-color var(--transicao-rapida),
+    box-shadow var(--transicao-rapida),
+    background-color var(--transicao-rapida);
+}
+
+.formulario-input--with-icon {
+  padding-left: var(--espacamento-10);
+}
+
+.formulario-input::placeholder {
+  color: var(--cor-texto-secundario);
+  opacity: 0.7;
+}
+
+.formulario-input:hover {
+  border-color: var(--cor-borda-forte);
+}
+
+.formulario-input:focus {
+  outline: none;
+  border-color: var(--cor-primaria);
+  background-color: var(--cor-superficie);
+  box-shadow: 0 0 0 3px var(--cor-primaria-clara);
+}
+
+.formulario-input--erro {
+  border-color: var(--cor-erro);
+  background-color: var(--cor-erro-clara);
+}
+
+.formulario-input--erro:focus {
+  border-color: var(--cor-erro);
+  box-shadow: 0 0 0 3px var(--cor-erro-clara);
+}
+
+.form-error {
+  font-size: var(--tamanho-texto-xs);
+  font-weight: 500;
+  color: var(--cor-erro);
+}
+
+.formulario-hint {
+  font-size: var(--tamanho-texto-xs);
+  color: var(--cor-texto-secundario);
+  text-align: right;
+}
+
+/* Mensagens de feedback */
+.mensagem {
+  padding: var(--espacamento-3) var(--espacamento-4);
+  font-size: var(--tamanho-texto-sm);
+  font-weight: 500;
+  border-radius: var(--raio-borda-md);
+  text-align: center;
+}
+
+.mensagem--sucesso {
+  color: var(--cor-sucesso);
+  background-color: var(--cor-sucesso-clara);
+}
+
+.mensagem--erro {
+  color: var(--cor-erro);
+  background-color: var(--cor-erro-clara);
+}
+
+/* =========================================================
+   Botão Submit
+   ========================================================= */
+
+/* Botão de submit */
+.btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--espacamento-4);
+  font-size: var(--tamanho-texto-base);
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--cor-primaria);
+  border-radius: var(--raio-borda-md);
+  box-shadow: var(--sombra-sm);
+  transition:
+    background-color var(--transicao-rapida),
+    box-shadow var(--transicao-rapida),
+    transform var(--transicao-rapida);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background-color: var(--cor-primaria-escura);
+  box-shadow: var(--sombra-md);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+
 /* ---------------------------------------------------------
    6. Media Queries — Tablet e Desktop
    --------------------------------------------------------- */
