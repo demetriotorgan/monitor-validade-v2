@@ -2,9 +2,10 @@
 import { forwardRef } from 'react';
 import { PackageSearch, Pencil, Trash2 } from 'lucide-react';
 import './ProdutoLista.css';
-import { type Produto, type Status } from '../../../hooks/useListarProdutos';
+import { type Status } from '../../../hooks/useListarProdutos';
 import { formatarData } from '../../../utils/datas/formatarData';
 import Lista from '../Lista/Lista';
+import type { Produto } from '../../../types/produto.types';
 
 
 interface ListaProdutosProps {

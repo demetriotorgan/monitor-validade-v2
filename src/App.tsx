@@ -5,6 +5,7 @@ import Dashboard from './components/layout/Dashboard/Dashboard';
 import Validade from './components/layout/Validade/Validade';
 import Produtos from './components/layout/Produtos/Produtos';
 import Monitoramento from './components/layout/Monitoramento/Monitoramento';
+import { CapturaPageRoute } from './pages/CapturaPageRoute';
 
 function App() {  
 
@@ -15,6 +16,7 @@ function App() {
             <Route element={<Layout/>}>
               <Route path='/' element={<Dashboard/>} />
               <Route path='/validade' element={<Validade />} />
+               <Route path="/validade/captura" element={<CapturaPageRoute />} />
               <Route path='/produtos' element={<Produtos />} />
               <Route path='/monitoramento' element={<Monitoramento />}/>
             </Route>

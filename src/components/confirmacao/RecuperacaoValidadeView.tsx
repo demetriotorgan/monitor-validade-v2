@@ -6,8 +6,10 @@ import type {
 } from '../../types/recuperacao.types';
 
 import './RecuperacaoValidadeView.css';
+import { ProdutoSelecionado } from '../layout/Produtos/ProdutoSelecionado/ProdutoSelecionado';
 
 export function RecuperacaoValidadeView({
+  produto,
   imagemUrl,
   mensagemErro,
   estadoConfirmacao,
@@ -39,6 +41,11 @@ export function RecuperacaoValidadeView({
 
         <header className="recuperacao-cabecalho">
           <h2>Recuperação manual da validade</h2>
+
+          <ProdutoSelecionado 
+            produto={produto}
+            titulo='Produto em Cadastro'
+          />
 
           <p>
             Não foi possível concluir a análise automática

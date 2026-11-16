@@ -1,20 +1,12 @@
 
 import { useEffect, useRef, useState } from 'react';
-
 import { CameraController } from '../components/camera/CameraController';
-
 import ConfirmacaoValidadeView from '../components/confirmacao/ConfirmacaoValidadeView';
-
 import RecuperacaoValidadeView from '../components/confirmacao/RecuperacaoValidadeView';
-
 import { processarValidade } from '../services/validadeApi';
-
 import type { ResultadoRecorte } from '../services/recorte';
-
 import { avaliarValidade } from '../utils/validacao/avaliarValidade';
-
 import { obterDataReferencia } from '../utils/validacao/obterDataReferencia';
-
 import { obterApresentacaoAvaliacao } from '../utils/validacao/obterApresentacaoAvaliacao';
 
 import type {
@@ -33,7 +25,16 @@ import type {
   ApresentacaoAvaliacao,
 } from '../types/validacao.types';
 
-export function CapturaPage() {
+import type { Produto } from '../types/produto.types';
+
+interface CapturaPageProps {
+  produto: Produto;
+}
+
+export function CapturaPage({produto}: CapturaPageProps) {
+  const produtoRef = useRef<Produto>(produto);
+  const produtoAtivo = produtoRef.current;  
+
   const [estado, setEstado] =
     useState<EstadoInferencia>('AGUARDANDO_IMAGEM');
 
@@ -458,12 +459,19 @@ export function CapturaPage() {
           return;
         }
 
-        // O destino do cadastro será integrado
-        // quando essa etapa estiver definida.
+        //Montagem do payload e envio
+        const payload = {
+          produto: produtoRef.current,
+          dataValidade: confirmacaoAtualRef.current,
+          dadosAvaliacao: resultadoAvaliacao,
+          imagem: resultadoRecorteRef.current,
+        };
+
         console.log(
-          'Validade aprovada para prosseguimento:',
-          resultadoAvaliacao.data_normalizada,
+          'Payload final para cadastro de validade:',
+          payload,
         );
+
         return;
     }
   }
@@ -550,6 +558,7 @@ export function CapturaPage() {
         resposta &&
         imagemUrl && (
           <ConfirmacaoValidadeView
+            produto={produtoAtivo}
             imagemUrl={imagemUrl}
             dados={resposta.dados}
             estadoConfirmacao={estadoConfirmacao}
@@ -570,6 +579,7 @@ export function CapturaPage() {
 
       {estado === 'ERRO' && imagemUrl && (
         <RecuperacaoValidadeView
+          produto={produtoAtivo}
           imagemUrl={imagemUrl}
           mensagemErro={
             erro ?? 'Falha técnica não especificada.'

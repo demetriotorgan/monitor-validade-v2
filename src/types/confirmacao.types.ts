@@ -11,6 +11,7 @@ export type OrigemConfirmacao =
 import type {
     ApresentacaoAvaliacao,
 } from './validacao.types';
+import type { Produto } from './produto.types';
 
 /**
  * RF-23 — Resultado da confirmação humana.
@@ -140,4 +141,5 @@ export interface ConfirmacaoValidadeViewProps {
  * da tentativa após bloqueio ou revisão.
  */
     onCancelarTentativa: () => void;
+    produto:Produto;
 }

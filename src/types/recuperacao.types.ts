@@ -3,6 +3,7 @@ import type {
   DataConfirmadaUsuario,
   EstadoConfirmacao,
 } from './confirmacao.types';
+import type { Produto } from './produto.types';
 
 import type {
   ApresentacaoAvaliacao,
@@ -104,5 +105,5 @@ export interface RecuperacaoValidadeViewProps {
    * Executa a ação recomendada pelo RF-31.
    */
   onExecutarAcaoAvaliacao: () => void;
-
+  produto:Produto;
 }

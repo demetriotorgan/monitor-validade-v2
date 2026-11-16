@@ -2,14 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
+import type { Produto } from '../types/produto.types';
 
-export interface Produto {
-  _id: string;
-  codigoBarras: string;
-  nome: string;
-  criadoEm: string;
-  atualizadoEm: string;
-}
+
 
 export type Status = 'idle' | 'loading' | 'success' | 'error';
 

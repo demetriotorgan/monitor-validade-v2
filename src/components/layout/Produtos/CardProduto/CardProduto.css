@@ -1,0 +1,32 @@
+/* src/components/BuscaProduto/CardProduto/CardProduto.css */
+.produto-card-botao-validade {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    background-color: #dc2626; /* vermelho */
+    color: #ffffff;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem 0.875rem;
+
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.produto-card-botao-validade:hover {
+    background-color: #b91c1c; /* vermelho mais escuro */
+}
+
+.produto-card-botao-validade:active {
+    transform: scale(0.98);
+}
+
+.produto-card-botao-validade:focus-visible {
+    outline: 2px solid #fca5a5;
+    outline-offset: 2px;
+}

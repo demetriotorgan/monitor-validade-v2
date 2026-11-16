@@ -4,10 +4,19 @@ import { Search } from 'lucide-react';
 import './BuscaProduto.css';
 import { useBuscarProdutos } from '../../../../hooks/useBuscarProdutos';
 import Lista from '../../Lista/Lista';
-import { formatarData } from '../../../../utils/datas/formatarData';
+import CardProduto from '../CardProduto/CardProduto';
+import type { Produto } from '../../../../types/produto.types';
+import { useNavigate } from 'react-router-dom';
+
 
 const BuscaProduto = () => {
     const { termo, setTermo, produtos, status, mensagem } = useBuscarProdutos();
+    const navigate = useNavigate();
+
+    function handleCadastrarValidade(produto: Produto): void {
+        navigate('/validade/captura', { state: { produto } });
+    }
+
 
     // Log incremental: apenas imprime no console enquanto não renderizamos
     //   console.log({
@@ -56,23 +65,7 @@ const BuscaProduto = () => {
                             </span>
                         ) : null
                     }
-                    renderItem={(produto) => (
-                        <>
-                            <div className="produto-card-info">
-                                <h2 className="produto-card-nome">{produto.nome}</h2>
-                                <span className="produto-card-codigo">
-                                    Código: {produto.codigoBarras}
-                                </span>
-                                <span className="produto-card-data">
-                                    Cadastrado em {formatarData(produto.criadoEm)}
-                                </span>
-                            </div>
-
-                            <div className="produto-card-acoes">
-
-                            </div>
-                        </>
-                    )}
+                    renderItem={(produto) => <CardProduto produto={produto} onCadastrarValidade={handleCadastrarValidade} />}
                 />
             )}
         </div>

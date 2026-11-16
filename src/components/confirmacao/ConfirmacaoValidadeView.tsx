@@ -1,10 +1,12 @@
 import type {
   ConfirmacaoValidadeViewProps,
 } from '../../types/confirmacao.types';
+import { ProdutoSelecionado } from '../layout/Produtos/ProdutoSelecionado/ProdutoSelecionado';
 
 import './ConfirmacaoValidadeView.css';
 
 export function ConfirmacaoValidadeView({
+  produto,
   imagemUrl,
   dados,
   estadoConfirmacao,
@@ -52,6 +54,11 @@ export function ConfirmacaoValidadeView({
 
         <header className="confirmacao-header">
           <h1>Confirmar validade</h1>
+          
+          <ProdutoSelecionado
+            produto={produto} 
+            titulo='Produto em Cadastro'          
+          />
 
           <p>
             Confira as informações identificadas
