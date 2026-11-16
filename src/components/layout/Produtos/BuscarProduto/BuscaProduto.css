@@ -42,3 +42,29 @@
 .busca-produto-feedback--erro {
   color: #ef4444;
 }
+
+.busca-produto-feedback--loading::after {
+  content: '...';
+  display: inline-block;
+  width: 1.5rem;
+  text-align: left;
+  animation: pontinhos-loading 1.5s steps(4, end) infinite;
+}
+
+@keyframes pontinhos-loading {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
