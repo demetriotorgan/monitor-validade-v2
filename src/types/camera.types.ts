@@ -48,4 +48,5 @@ export interface CameraViewProps {
   onEncerrarCamera: () => void;
   onRepetirCaptura: () => void;
   onProsseguir: () => void;
+  onCancelar: () =>void;
 }

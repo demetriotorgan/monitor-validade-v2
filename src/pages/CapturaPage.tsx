@@ -30,6 +30,7 @@ import type { Produto } from '../types/produto.types';
 import { cadastrarValidade } from '../services/cadastroValidadeApi';
 import { buildValidadeBackendPayload } from '../utils/validade/buildValidadePayload';
 import { SucessoCadastroValidade } from './SucessoCadastroValidade';
+import { ConfiguracaoAlertaView } from './ConfiguracaoAlertaView';
 
 interface CapturaPageProps {
   produto: Produto;
@@ -70,6 +71,11 @@ export function CapturaPage({ produto }: CapturaPageProps) {
     useState<ApresentacaoAvaliacao | null>(null);
 
   const [payloadEnviado, setPayloadEnviado] = useState<ValidadePayloadBackend | null>(null);
+
+  const [exibirConfiguracaoAlerta, setExibirConfiguracaoAlerta] =
+    useState(false);
+
+  
   /**
 * DEC-G4-24 — Identifica edição iniciada
 * após bloqueio do RF-30.
@@ -120,6 +126,7 @@ export function CapturaPage({ produto }: CapturaPageProps) {
     setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
     setValorEdicao('');
     setEvidenciasAbertas(false);
+    setExibirConfiguracaoAlerta(false);
 
     setResultadoAvaliacao(null);
     setApresentacaoAvaliacao(null);
@@ -454,8 +461,6 @@ export function CapturaPage({ produto }: CapturaPageProps) {
       return;
     }
 
-
-
     switch (resultadoAvaliacao.acao_recomendada) {
       case 'CORRIGIR_DATA':
       case 'REVISAR_FABRICACAO':
@@ -468,38 +473,56 @@ export function CapturaPage({ produto }: CapturaPageProps) {
           return;
         }
 
-        //Montagem do payload e envio
-        const payload = {
-          produto: produtoRef.current,
-          dataValidade: confirmacaoAtualRef.current,
-          dadosAvaliacao: resultadoAvaliacao,
-          // imagem: resultadoRecorteRef.current,
-        };
-
-        console.log(
-          'Payload final para cadastro de validade:',
-          payload,
-        );
-        try {
-          const payloadBackend = buildValidadeBackendPayload(
-            produtoRef.current,
-            resultadoAvaliacao,
-          );
-
-          await cadastrarValidade(
-            produtoRef.current,
-            resultadoAvaliacao,
-          );
-
-          setPayloadEnviado(payloadBackend);
-        } catch (erro) {
-          console.error('Falha ao cadastrar validade:', erro);
-          // TODO: exibir mensagem de erro para o usuário
-        }
-
+        //Abre etapa de configuração do alerta
+        setExibirConfiguracaoAlerta(true);
         return;
     }
   }
+
+  async function confirmarCadastroComAlerta(diasAntecedencia: number): Promise<void> {
+    if (
+      confirmacaoAtualRef.current === null ||
+      resultadoAvaliacao === null
+    ) {
+      return;
+    }   
+
+    const payloadDebug = {
+      produto: produtoRef.current,
+      dataValidade: confirmacaoAtualRef.current,
+      dadosAvaliacao: resultadoAvaliacao,
+      diasAntecedencia,
+    };
+
+    console.log(
+      'Payload final para cadastro de validade:',
+      payloadDebug,
+    );
+
+    try {
+      const payloadBackend = buildValidadeBackendPayload(
+        produtoRef.current,
+        resultadoAvaliacao,
+        diasAntecedencia,
+      );
+
+      await cadastrarValidade(
+        produtoRef.current,
+        resultadoAvaliacao,
+        diasAntecedencia,
+      );
+
+      setPayloadEnviado(payloadBackend);
+    } catch (erro) {
+      console.error('Falha ao cadastrar validade:', erro);
+      // TODO: exibir mensagem de erro para o usuário
+    }
+  }
+
+  function cancelarConfiguracaoAlerta(): void {
+    setExibirConfiguracaoAlerta(false);
+  }
+
 
 
   /**
@@ -540,10 +563,20 @@ export function CapturaPage({ produto }: CapturaPageProps) {
     <>
       {payloadEnviado ? (
         <div className="captura-page">
-          <SucessoCadastroValidade
-            payload={payloadEnviado}            
-          />
+          <SucessoCadastroValidade payload={payloadEnviado} />
         </div>
+      ) : exibirConfiguracaoAlerta &&
+        confirmacaoAtualRef.current !== null &&
+        resultadoAvaliacao !== null ? (
+        <ConfiguracaoAlertaView
+          produtoNome={produtoAtivo.nome}
+          dataValidade={confirmacaoAtualRef.current.data_confirmada}
+          valorPadrao={7}
+          onConfirmar={(dias) => {
+            void confirmarCadastroComAlerta(dias);
+          }}
+          onCancelar={cancelarConfiguracaoAlerta}
+        />
       ) : (
         <>
           {estado === 'AGUARDANDO_IMAGEM' && (

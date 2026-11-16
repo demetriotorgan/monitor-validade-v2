@@ -1,4 +1,3 @@
-
 import './CameraView.css';
 import type { CameraViewProps } from '../../types/camera.types';
 
@@ -14,6 +13,7 @@ const CameraView = ({
   onEncerrarCamera,
   onRepetirCaptura,
   onProsseguir,
+  onCancelar,
 }: CameraViewProps) => {
   const cameraPronta = etapa === 'CAMERA_PRONTA';
   const cameraAbrindo = etapa === 'CAMERA_ABRINDO';
@@ -36,8 +36,7 @@ const CameraView = ({
     cameraAbrindo || capturando || recortando;
 
   return (
-    <main className="camera-page">     
-
+    <main className="camera-page">
       <section className="camera-content">
         <section className="camera-section">
           <div className="section-heading">
@@ -50,14 +49,13 @@ const CameraView = ({
             </p>
           </div>
 
-          <div className="camera-preview">
-            {/*
-              Preservamos os elementos originais.
-
-              Não desmontar o vídeo nem a moldura
-              durante CAPTURANDO ou RECORTANDO.
-            */}
-
+          <div
+            className={`camera-preview ${
+              imagemRecortada
+                ? 'camera-preview--com-recorte'
+                : ''
+            }`}
+          >
             <video
               ref={videoRef}
               className="camera-video"
@@ -65,9 +63,9 @@ const CameraView = ({
               muted
               playsInline
               style={{
-                visibility: imagemRecortada
-                  ? 'hidden'
-                  : 'visible',
+                display: imagemRecortada
+                  ? 'none'
+                  : 'block',
               }}
             />
 
@@ -81,9 +79,7 @@ const CameraView = ({
 
                 <p>A câmera está desligada</p>
 
-                <span>
-                  A imagem aparecerá aqui
-                </span>
+                <span>A imagem aparecerá aqui</span>
               </div>
             )}
 
@@ -99,36 +95,20 @@ const CameraView = ({
             />
 
             {imagemRecortada && (
-              <img
-                src={recorteUrl}
-                alt="Imagem recortada da validade do produto"
-                className="camera-cropped-image"
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  zIndex: 3,
-                }}
-              />
+              <div className="camera-cropped-overlay">
+                <img
+                  src={recorteUrl}
+                  alt="Imagem recortada da validade do produto"
+                  className="camera-cropped-image"
+                />
+              </div>
             )}
 
             {processamentoEmAndamento && (
               <div
                 role="status"
                 aria-live="polite"
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  zIndex: 4,
-                  padding: '12px',
-                  textAlign: 'center',
-                  background: 'rgba(0, 0, 0, 0.65)',
-                  color: '#fff',
-                }}
+                className="camera-processando"
               >
                 {cameraAbrindo && 'Abrindo câmera...'}
                 {capturando && 'Capturando fotografia...'}
@@ -139,16 +119,26 @@ const CameraView = ({
 
           <div className="camera-actions">
             {(cameraDesligada || ocorreuErro) && (
-              <button
-                type="button"
-                className="button button-primary"
-                onClick={onAbrirCamera}
-              >
-                <span aria-hidden="true">▣</span>
-                {ocorreuErro
-                  ? 'Tentar novamente'
-                  : 'Abrir câmera'}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="button button-primary"
+                  onClick={onAbrirCamera}
+                >
+                  <span aria-hidden="true">▣</span>
+                  {ocorreuErro
+                    ? 'Tentar novamente'
+                    : 'Abrir câmera'}
+                </button>
+
+                <button
+                  type="button"
+                  className="button button-secondary"
+                  onClick={onCancelar}
+                >
+                  Cancelar
+                </button>
+              </>
             )}
 
             {cameraPronta && (

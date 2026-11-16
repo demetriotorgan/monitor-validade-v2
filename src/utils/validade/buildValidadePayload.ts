@@ -3,13 +3,17 @@ import type { Produto } from '../../types/produto.types';
 import type { ResultadoAvaliacaoValidade } from '../../types/validacao.types';
 import type { ValidadePayloadBackend } from '../../types/validade.types';
 
-const DIAS_ALERTA_PADRAO = 7;
-
-export function buildValidadeBackendPayload(produto: Produto, dadosAvaliacao: ResultadoAvaliacaoValidade): ValidadePayloadBackend {
+export function buildValidadeBackendPayload(produto: Produto, dadosAvaliacao: ResultadoAvaliacaoValidade, diasAntecedencia: number): ValidadePayloadBackend {
     
   if (!dadosAvaliacao.data_normalizada) {
     throw new Error(
       'Não é possível construir payload de validade sem data normalizada.',
+    );
+  }
+
+   if (!Number.isInteger(diasAntecedencia) || diasAntecedencia <= 0) {
+    throw new Error(
+      'Dias de antecedencia deve ser um número inteiro maior que zero.',
     );
   }
 
@@ -27,7 +31,7 @@ export function buildValidadeBackendPayload(produto: Produto, dadosAvaliacao: Re
       nome: produto.nome,
     },
     alerta: {
-      dias_antecedencia: DIAS_ALERTA_PADRAO,
+      dias_antecedencia: diasAntecedencia,
     },
     ml: {
       situacao: dadosAvaliacao.situacao,

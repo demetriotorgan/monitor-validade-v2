@@ -288,6 +288,50 @@
   line-height: 1.6;
 }
 
+/* Quando a imagem recortada está sendo exibida,
+   usa fundo escuro para evitar que elementos
+   de fundo apareçam ao redor da imagem. */
+
+.camera-preview--com-recorte {
+  background: #0f172a;
+}
+
+/* Camada exclusiva para a imagem recortada */
+
+.camera-cropped-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #efefef;
+}
+
+.camera-cropped-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* Overlay de processamento movido para classe */
+
+.camera-processando {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  padding: 12px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+}
+
+
 /* Responsividade */
 
 @media (min-width: 700px) {

@@ -288,16 +288,15 @@ export function ConfirmacaoValidadeView({
 
           {/* DEC-G4-26 — Cancelamento da tentativa */}
 
-          {confirmada &&
-            apresentacaoAvaliacao !== null && (
-              <button
-                type="button"
-                className="confirmacao-botao-secundario"
-                onClick={onCancelarTentativa}
-              >
-                Cancelar cadastro
-              </button>
-            )}
+           {/* DEC-G4-26 — Cancelamento da tentativa */}
+
+          <button
+            type="button"
+            className="confirmacao-botao-secundario"
+            onClick={onCancelarTentativa}
+          >
+            Cancelar cadastro
+          </button>
 
         </section>
       </section>

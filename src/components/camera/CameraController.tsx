@@ -16,6 +16,7 @@ import type {
   EtapaCaptura,
   CameraControllerProps,
 } from '../../types/camera.types';
+import { useNavigate } from 'react-router-dom';
 
 export function CameraController({
   onImagemAceita,
@@ -27,6 +28,7 @@ export function CameraController({
     capturarFoto,
     encerrarCamera,
   } = useCamera();
+  const navigate = useNavigate();
 
   const { executarRecorte } = useImageCrop();
 
@@ -273,6 +275,10 @@ export function CameraController({
     };
   }, [encerrarCamera]);
 
+    function handleCancelar(): void {
+    navigate('/');
+  }
+
   return (
     <CameraView
       videoRef={videoRef}
@@ -292,6 +298,7 @@ export function CameraController({
         void repetirCaptura();
       }}
       onProsseguir={prosseguir}
+      onCancelar={handleCancelar}
     />
   );
 }
