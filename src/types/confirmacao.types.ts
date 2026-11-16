@@ -134,7 +134,7 @@ export interface ConfirmacaoValidadeViewProps {
     /**
      * Executa a ação recomendada pelo RF-31.
      */
-    onExecutarAcaoAvaliacao: () => void;
+    onExecutarAcaoAvaliacao: () => void | Promise<void>;
 
     /**
  * DEC-G4-26 — Encerramento explícito

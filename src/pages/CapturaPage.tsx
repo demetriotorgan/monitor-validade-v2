@@ -9,9 +9,10 @@ import { avaliarValidade } from '../utils/validacao/avaliarValidade';
 import { obterDataReferencia } from '../utils/validacao/obterDataReferencia';
 import { obterApresentacaoAvaliacao } from '../utils/validacao/obterApresentacaoAvaliacao';
 
-import type {
-  EstadoInferencia,
-  RespostaInferenciaSucesso,
+import {
+  type ValidadePayloadBackend,
+  type EstadoInferencia,
+  type RespostaInferenciaSucesso,
 } from '../types/validade.types';
 
 import type {
@@ -26,14 +27,17 @@ import type {
 } from '../types/validacao.types';
 
 import type { Produto } from '../types/produto.types';
+import { cadastrarValidade } from '../services/cadastroValidadeApi';
+import { buildValidadeBackendPayload } from '../utils/validade/buildValidadePayload';
+import { SucessoCadastroValidade } from './SucessoCadastroValidade';
 
 interface CapturaPageProps {
   produto: Produto;
 }
 
-export function CapturaPage({produto}: CapturaPageProps) {
+export function CapturaPage({ produto }: CapturaPageProps) {
   const produtoRef = useRef<Produto>(produto);
-  const produtoAtivo = produtoRef.current;  
+  const produtoAtivo = produtoRef.current;
 
   const [estado, setEstado] =
     useState<EstadoInferencia>('AGUARDANDO_IMAGEM');
@@ -57,13 +61,15 @@ export function CapturaPage({produto}: CapturaPageProps) {
     useState<DataConfirmadaUsuario | null>(null);
 
   const [evidenciasAbertas, setEvidenciasAbertas] =
-    useState(false);  
+    useState(false);
 
   const [resultadoAvaliacao, setResultadoAvaliacao] =
     useState<ResultadoAvaliacaoValidade | null>(null);
 
   const [apresentacaoAvaliacao, setApresentacaoAvaliacao] =
     useState<ApresentacaoAvaliacao | null>(null);
+
+  const [payloadEnviado, setPayloadEnviado] = useState<ValidadePayloadBackend | null>(null);
   /**
 * DEC-G4-24 — Identifica edição iniciada
 * após bloqueio do RF-30.
@@ -113,7 +119,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
 
     setEstadoConfirmacao('AGUARDANDO_CONFIRMACAO');
     setValorEdicao('');
-    setEvidenciasAbertas(false);    
+    setEvidenciasAbertas(false);
 
     setResultadoAvaliacao(null);
     setApresentacaoAvaliacao(null);
@@ -144,7 +150,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
     };
 
     atualizarConfirmacao(confirmacao);
-    setEstadoConfirmacao('CONFIRMADA');    
+    setEstadoConfirmacao('CONFIRMADA');
     setEdicaoAposBloqueio(false);
 
     // RF-30 + RF-31:
@@ -235,7 +241,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
       // DEC-INT-11-01:
       // Recuperação manual após falha técnica.
       setEstadoConfirmacao('EDITANDO');
-      setValorEdicao('');      
+      setValorEdicao('');
 
       setEstado('ERRO');
 
@@ -282,7 +288,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
       resposta?.dados.data_validade ??
       '';
 
-    setValorEdicao(valorInicial);    
+    setValorEdicao(valorInicial);
 
     setEstadoConfirmacao('EDITANDO');
   }
@@ -367,7 +373,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
 
     if (confirmacao !== null) {
       setValorEdicao(confirmacao.data_confirmada);
-      setEstadoConfirmacao('CONFIRMADA');      
+      setEstadoConfirmacao('CONFIRMADA');
       return;
     }
 
@@ -395,7 +401,7 @@ export function CapturaPage({produto}: CapturaPageProps) {
       setEstadoConfirmacao(
         'AGUARDANDO_CONFIRMACAO',
       );
-    }    
+    }
   }
 
   function alternarEvidencias(
@@ -431,13 +437,14 @@ export function CapturaPage({produto}: CapturaPageProps) {
 
 
   /**
-   * RF31-05 — Executa a ação recomendada
-   * pela avaliação consolidada.
-   *
-   * A aprovação não executa cadastro
-   * automaticamente.
-   */
-  function executarAcaoAvaliacao(): void {
+ * RF31-05 — Executa a ação recomendada
+ * pela avaliação consolidada.
+ *
+ * PROSSEGUIR + APROVADO dispara o cadastro
+ * da validade no backend.
+ */
+
+  async function executarAcaoAvaliacao(): Promise<void> {
     if (
       estadoConfirmacao !== 'CONFIRMADA' ||
       confirmacaoAtualRef.current === null ||
@@ -446,6 +453,8 @@ export function CapturaPage({produto}: CapturaPageProps) {
     ) {
       return;
     }
+
+
 
     switch (resultadoAvaliacao.acao_recomendada) {
       case 'CORRIGIR_DATA':
@@ -464,13 +473,29 @@ export function CapturaPage({produto}: CapturaPageProps) {
           produto: produtoRef.current,
           dataValidade: confirmacaoAtualRef.current,
           dadosAvaliacao: resultadoAvaliacao,
-          imagem: resultadoRecorteRef.current,
+          // imagem: resultadoRecorteRef.current,
         };
 
         console.log(
           'Payload final para cadastro de validade:',
           payload,
         );
+        try {
+          const payloadBackend = buildValidadeBackendPayload(
+            produtoRef.current,
+            resultadoAvaliacao,
+          );
+
+          await cadastrarValidade(
+            produtoRef.current,
+            resultadoAvaliacao,
+          );
+
+          setPayloadEnviado(payloadBackend);
+        } catch (erro) {
+          console.error('Falha ao cadastrar validade:', erro);
+          // TODO: exibir mensagem de erro para o usuário
+        }
 
         return;
     }
@@ -513,87 +538,97 @@ export function CapturaPage({produto}: CapturaPageProps) {
 
   return (
     <>
-      {estado === 'AGUARDANDO_IMAGEM' && (
-        <CameraController
-          onImagemAceita={(resultado) => {
-            void receberImagem(resultado);
-          }}
-        />
-      )}
-
-      {estado === 'PROCESSANDO' && (
-        <section
-          role="status"
-          aria-live="polite"
-          style={{
-            maxWidth: 700,
-            margin: '24px auto',
-            padding: 16,
-          }}
-        >
-          <h2>Analisando imagem...</h2>
-
-          {imagemUrl && (
-            <img
-              src={imagemUrl}
-              alt="Imagem recortada em análise"
-              style={{
-                display: 'block',
-                maxWidth: '100%',
-                maxHeight: 300,
-                objectFit: 'contain',
-                marginBottom: 16,
+      {payloadEnviado ? (
+        <div className="captura-page">
+          <SucessoCadastroValidade
+            payload={payloadEnviado}            
+          />
+        </div>
+      ) : (
+        <>
+          {estado === 'AGUARDANDO_IMAGEM' && (
+            <CameraController
+              onImagemAceita={(resultado) => {
+                void receberImagem(resultado);
               }}
             />
           )}
 
-          <p>
-            Aguarde enquanto a IA identifica
-            as informações da validade.
-          </p>
-        </section>
-      )}
+          {estado === 'PROCESSANDO' && (
+            <section
+              role="status"
+              aria-live="polite"
+              style={{
+                maxWidth: 700,
+                margin: '24px auto',
+                padding: 16,
+              }}
+            >
+              <h2>Analisando imagem...</h2>
 
-      {estado === 'SUCESSO' &&
-        resposta &&
-        imagemUrl && (
-          <ConfirmacaoValidadeView
-            produto={produtoAtivo}
-            imagemUrl={imagemUrl}
-            dados={resposta.dados}
-            estadoConfirmacao={estadoConfirmacao}
-            valorEdicao={valorEdicao}
-            confirmacaoVigente={confirmacaoVigente}
-            evidenciasAbertas={evidenciasAbertas}
-            onAlternarEvidencias={alternarEvidencias}
-            onConfirmarSugestao={confirmarSugestao}
-            onIniciarEdicao={iniciarEdicao}
-            onAlterarEdicao={alterarEdicao}
-            onConfirmarEdicao={confirmarEdicao}
-            onCancelarEdicao={cancelarEdicao}
-            apresentacaoAvaliacao={apresentacaoAvaliacao}
-            onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
-            onCancelarTentativa={encerrarTentativa}
-          />
-        )}
+              {imagemUrl && (
+                <img
+                  src={imagemUrl}
+                  alt="Imagem recortada em análise"
+                  style={{
+                    display: 'block',
+                    maxWidth: '100%',
+                    maxHeight: 300,
+                    objectFit: 'contain',
+                    marginBottom: 16,
+                  }}
+                />
+              )}
 
-      {estado === 'ERRO' && imagemUrl && (
-        <RecuperacaoValidadeView
-          produto={produtoAtivo}
-          imagemUrl={imagemUrl}
-          mensagemErro={
-            erro ?? 'Falha técnica não especificada.'
-          }
-          estadoConfirmacao={estadoConfirmacao}
-          valorEdicao={valorEdicao}
-          confirmacaoVigente={confirmacaoVigente}
-          onAlterarEdicao={alterarEdicao}
-          onConfirmarEdicao={confirmarEdicao}
-          onIniciarEdicao={iniciarEdicao}
-          onCancelarTentativa={encerrarTentativa}
-          apresentacaoAvaliacao={apresentacaoAvaliacao}
-          onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
-        />
+              <p>
+                Aguarde enquanto a IA identifica
+                as informações da validade.
+              </p>
+            </section>
+          )}
+
+          {estado === 'SUCESSO' &&
+            resposta &&
+            imagemUrl && (
+              <ConfirmacaoValidadeView
+                produto={produtoAtivo}
+                imagemUrl={imagemUrl}
+                dados={resposta.dados}
+                estadoConfirmacao={estadoConfirmacao}
+                valorEdicao={valorEdicao}
+                confirmacaoVigente={confirmacaoVigente}
+                evidenciasAbertas={evidenciasAbertas}
+                onAlternarEvidencias={alternarEvidencias}
+                onConfirmarSugestao={confirmarSugestao}
+                onIniciarEdicao={iniciarEdicao}
+                onAlterarEdicao={alterarEdicao}
+                onConfirmarEdicao={confirmarEdicao}
+                onCancelarEdicao={cancelarEdicao}
+                apresentacaoAvaliacao={apresentacaoAvaliacao}
+                onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
+                onCancelarTentativa={encerrarTentativa}
+              />
+            )}
+
+          {estado === 'ERRO' && imagemUrl && (
+            <RecuperacaoValidadeView
+              produto={produtoAtivo}
+              imagemUrl={imagemUrl}
+              mensagemErro={
+                erro ?? 'Falha técnica não especificada.'
+              }
+              estadoConfirmacao={estadoConfirmacao}
+              valorEdicao={valorEdicao}
+              confirmacaoVigente={confirmacaoVigente}
+              onAlterarEdicao={alterarEdicao}
+              onConfirmarEdicao={confirmarEdicao}
+              onIniciarEdicao={iniciarEdicao}
+              onCancelarTentativa={encerrarTentativa}
+              apresentacaoAvaliacao={apresentacaoAvaliacao}
+              onExecutarAcaoAvaliacao={executarAcaoAvaliacao}
+            />
+          )}
+        </>
       )}
     </>
   );

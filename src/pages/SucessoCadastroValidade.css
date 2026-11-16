@@ -1,0 +1,83 @@
+/* src/components/CapturaPage/SucessoCadastroValidade/SucessoCadastroValidade.css */
+.sucesso-cadastro-validade {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 2rem;
+  text-align: center;
+  background-color: #f8fafc;
+}
+
+.sucesso-cadastro-validade__icone {
+  color: #22c55e;
+  margin-bottom: 1rem;
+}
+
+.sucesso-cadastro-validade__titulo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #14532d;
+  margin-bottom: 0.5rem;
+}
+
+.sucesso-cadastro-validade__subtitulo {
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.sucesso-cadastro-validade__resumo {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.sucesso-cadastro-validade__item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #334155;
+  text-align: left;
+}
+
+.sucesso-cadastro-validade__item:not(:last-child) {
+  margin-bottom: 1rem;
+}
+
+.sucesso-cadastro-validade__acoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.sucesso-cadastro-validade__botao--primario,
+.sucesso-cadastro-validade__botao--secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.sucesso-cadastro-validade__botao--primario {
+  background-color: #22c55e;
+  color: white;
+}
+
+.sucesso-cadastro-validade__botao--secundario {
+  background-color: transparent;
+  color: #22c55e;
+  border: 1px solid #22c55e;
+}

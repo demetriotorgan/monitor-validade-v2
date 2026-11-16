@@ -72,3 +72,22 @@ export type EstadoInferencia =
   | 'PROCESSANDO'
   | 'SUCESSO'
   | 'ERRO';
+
+export interface ValidadePayloadBackend {
+  data: {
+    ano: number;
+    mes: number;
+    dia: number;
+    data_iso: string;
+    data_original: string;
+  };
+  produto: {
+    _id_produto: string;
+    codigo_barras: string;
+    nome: string;
+  };
+  alerta: {
+    dias_antecedencia: number;
+  };
+  ml: Record<string, unknown>;
+}
