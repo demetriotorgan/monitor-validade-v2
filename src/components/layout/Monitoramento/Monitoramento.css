@@ -13,8 +13,7 @@
 .monitoramento__titulo {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--cor-texto);
-  margin-bottom: 0.5rem;
+  color: var(--cor-texto);  
 }
 
 .monitoramento__subtitulo {

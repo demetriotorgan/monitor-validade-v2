@@ -60,9 +60,9 @@ const Monitoramento = () => {
   return (
     <div className="monitoramento">
       <header className="monitoramento__cabecalho">
-        <h1 className="monitoramento__titulo">Monitoramento de Validades</h1>
+        <h1 className="monitoramento__titulo">Últimas validades</h1>
         <p className="monitoramento__subtitulo">
-          Acompanhamento de produtos ativos e em alerta
+          Validades mais recentes
         </p>
       </header>
 
@@ -133,30 +133,6 @@ const Monitoramento = () => {
               </div>
 
               <div className="monitoramento__grupos">
-                <section className="monitoramento__grupo">
-                  <div className="monitoramento__grupo-titulo">
-                    <Calendar size={18} />
-                    <h3>Validade</h3>
-                  </div>
-                  <div className="monitoramento__grupo-conteudo">
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Data de validade:
-                      </span>
-                      <span className="monitoramento__valor monitoramento__valor--destaque">
-                        {formatarDataIso(registro.data.data_iso)}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Data original:
-                      </span>
-                      <span className="monitoramento__valor">
-                        {registro.data.data_original}
-                      </span>
-                    </p>
-                  </div>
-                </section>
 
                 <section className="monitoramento__grupo">
                   <div className="monitoramento__grupo-titulo">
@@ -183,6 +159,31 @@ const Monitoramento = () => {
 
                 <section className="monitoramento__grupo">
                   <div className="monitoramento__grupo-titulo">
+                    <Calendar size={18} />
+                    <h3>Validade</h3>
+                  </div>
+                  <div className="monitoramento__grupo-conteudo">
+                    <p>
+                      <span className="monitoramento__rotulo">
+                        Data de validade:
+                      </span>
+                      <span className="monitoramento__valor monitoramento__valor--destaque">
+                        {formatarDataIso(registro.data.data_iso)}
+                      </span>
+                    </p>
+                    <p>
+                      <span className="monitoramento__rotulo">
+                        Data original:
+                      </span>
+                      <span className="monitoramento__valor">
+                        {registro.data.data_original}
+                      </span>
+                    </p>
+                  </div>
+                </section>                
+
+                <section className="monitoramento__grupo">
+                  <div className="monitoramento__grupo-titulo">
                     <Bell size={18} />
                     <h3>Alerta</h3>
                   </div>
@@ -202,7 +203,7 @@ const Monitoramento = () => {
                 <section className="monitoramento__grupo">
                   <div className="monitoramento__grupo-titulo">
                     <AlertTriangle size={18} />
-                    <h3>Alertas</h3>
+                    <h3>Monitorando</h3>
                   </div>
                   <div className="monitoramento__grupo-conteudo">
                     <p>
