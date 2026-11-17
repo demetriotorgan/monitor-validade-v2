@@ -8,3 +8,9 @@
         minute: '2-digit',
       });
     };
+
+  export function formatarDataIso(dataIso: string): string {
+  const [ano, mes, dia] = dataIso.split('-');
+  return `${dia}/${mes}/${ano}`;
+}
+

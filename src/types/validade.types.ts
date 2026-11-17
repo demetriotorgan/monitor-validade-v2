@@ -1,3 +1,4 @@
+import type { Produto } from "./produto.types";
 
 /**
  * Classificação textual retornada pela IA.
@@ -83,7 +84,7 @@ export interface ValidadePayloadBackend {
   };
   produto: {
     _id_produto: string;
-    codigo_barras: string;
+    codigoBarras: string;
     nome: string;
   };
   alerta: {
@@ -91,3 +92,33 @@ export interface ValidadePayloadBackend {
   };
   ml: Record<string, unknown>;
 }
+
+export interface ValidadeData {
+  ano: number;
+  mes: number;
+  dia: number;
+  data_iso: string;
+  data_original: string;
+}
+
+export interface Alerta {
+  dias_antecedencia: number;
+}
+
+export interface RegistroValidade {
+  _id: string;
+  data: ValidadeData;
+  produto: Produto;
+  alerta: Alerta;
+  criadoEm: string;
+  atualizadoEm: string;
+  status: 'ATIVA' | 'VENCIDA';
+  dentro_do_periodo_alerta: boolean;
+  dias_restantes: number | null;
+}
+
+export interface ApiResponse {
+  sucesso: boolean;
+  dados: RegistroValidade[];
+}
+

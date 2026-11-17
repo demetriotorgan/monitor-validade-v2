@@ -1,0 +1,305 @@
+.monitoramento {
+  min-height: 100vh;
+  background-color: var(--cor-fundo);
+  padding: 2rem 1rem;
+}
+
+.monitoramento__cabecalho {
+  max-width: 1200px;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+}
+
+.monitoramento__titulo {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+  margin-bottom: 0.5rem;
+}
+
+.monitoramento__subtitulo {
+  color: var(--cor-texto-secundario);
+  font-size: 1rem;
+}
+
+.monitoramento__lista {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.monitoramento__vazio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 2rem;
+  background-color: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.75rem;
+  color: var(--cor-texto-secundario);
+  font-size: 1.125rem;
+}
+
+.monitoramento__vazio-icone {
+  color: var(--cor-alerta);
+}
+
+.monitoramento__card {
+  background-color: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.monitoramento__card:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.monitoramento__card--alerta {
+  border-left: 4px solid var(--cor-alerta);
+  background-color: var(--cor-alerta-clara);
+}
+
+.monitoramento__card--vencida {
+  border-left: 4px solid var(--cor-erro);
+  background-color: var(--cor-erro-clara);
+}
+
+.monitoramento__card-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.monitoramento__status {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.monitoramento__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.monitoramento__badge--ativa {
+  background-color: var(--cor-sucesso-clara);
+  color: var(--cor-sucesso);
+}
+
+.monitoramento__badge--vencida {
+  background-color: var(--cor-erro-clara);
+  color: var(--cor-erro);
+}
+
+.monitoramento__badge--alerta {
+  background-color: var(--cor-alerta-clara);
+  color: var(--cor-alerta);
+}
+
+.monitoramento__acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.monitoramento__botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.5rem;
+  background-color: var(--cor-superficie);
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.monitoramento__botao:hover {
+  background-color: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+}
+
+.monitoramento__botao--editar:hover {
+  background-color: var(--cor-primaria-clara);
+  color: var(--cor-primaria);
+  border-color: var(--cor-primaria);
+}
+
+.monitoramento__botao--encerrar:hover {
+  background-color: var(--cor-sucesso-clara);
+  color: var(--cor-sucesso);
+  border-color: var(--cor-sucesso);
+}
+
+.monitoramento__botao--excluir:hover {
+  background-color: var(--cor-erro-clara);
+  color: var(--cor-erro);
+  border-color: var(--cor-erro);
+}
+
+.monitoramento__grupos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.monitoramento__grupo {
+  background-color: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.monitoramento__grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--cor-primaria);
+}
+
+.monitoramento__grupo-titulo h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.monitoramento__grupo-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.monitoramento__grupo-conteudo p {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin: 0;
+}
+
+.monitoramento__rotulo {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--cor-texto-secundario);
+}
+
+.monitoramento__valor {
+  font-size: 0.9375rem;
+  color: var(--cor-texto);
+  word-break: break-word;
+}
+
+.monitoramento__valor--destaque {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--cor-primaria);
+}
+
+.monitoramento__valor--monospace {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.875rem;
+}
+
+.monitoramento__valor--ativa {
+  color: var(--cor-sucesso);
+  font-weight: 600;
+}
+
+.monitoramento__valor--vencida {
+  color: var(--cor-erro);
+  font-weight: 600;
+}
+
+.monitoramento__valor--ok {
+  color: var(--cor-sucesso);
+  font-weight: 600;
+}
+
+.monitoramento__valor--alerta {
+  color: var(--cor-alerta);
+  font-weight: 600;
+}
+
+.monitoramento__valor--critico {
+  color: var(--cor-erro);
+  font-weight: 700;
+}
+
+.monitoramento__metadados {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cor-borda);
+  color: var(--cor-texto-secundario);
+  font-size: 0.875rem;
+}
+
+.monitoramento__metadados-icone {
+  display: flex;
+  align-items: center;
+  color: var(--cor-info);
+}
+
+.monitoramento__metadados p {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0;
+}
+
+.monitoramento__separador {
+  color: var(--cor-borda-forte);
+}
+
+@media (max-width: 640px) {
+  .monitoramento {
+    padding: 1rem 0.75rem;
+  }
+
+  .monitoramento__titulo {
+    font-size: 1.5rem;
+  }
+
+  .monitoramento__card-cabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .monitoramento__grupos {
+    grid-template-columns: 1fr;
+  }
+
+  .monitoramento__metadados {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .monitoramento__separador {
+    display: none;
+  }
+}

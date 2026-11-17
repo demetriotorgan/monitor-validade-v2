@@ -27,7 +27,7 @@ export function buildValidadeBackendPayload(produto: Produto, dadosAvaliacao: Re
     },
     produto: {
       _id_produto: produto._id,
-      codigo_barras: produto.codigoBarras,
+      codigoBarras: produto.codigoBarras,
       nome: produto.nome,
     },
     alerta: {
