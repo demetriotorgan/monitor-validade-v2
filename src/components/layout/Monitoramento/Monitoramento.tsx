@@ -1,40 +1,40 @@
 import './Monitoramento.css';
 import { useEffect, useState } from 'react';
-import {
-  Calendar,
-  Package,
-  Bell,
-  AlertTriangle,
-  Clock,
-  Pencil,
-  Trash2,
-  CheckCircle,
-  Loader2,
-} from 'lucide-react';
+import { Calendar, Pencil, CheckCircle, Trash2 } from 'lucide-react';
 import type { ApiResponse, RegistroValidade } from '../../../types/validade.types';
 import api from '../../../services/api';
 
-// TODO: ajustar o caminho conforme a estrutura do projeto
+type StatusFiltro = RegistroValidade['validade'];
 
+const MAPEAMENTO_STATUS: Record<StatusFiltro, string> = {
+  espera: 'espera',
+  alerta: 'alerta',
+  vencido: 'vencido',
+  encerrado: 'encerrado',
+};
+
+const LABEL_STATUS: Record<StatusFiltro, string> = {
+  espera: 'ESPERA',
+  alerta: 'ALERTA',
+  vencido: 'VENCIDO',
+  encerrado: 'ENCERRADO',
+};
+
+const COR_STATUS: Record<StatusFiltro, string> = {
+  espera: '#3b82f6',
+  alerta: '#f59e0b',
+  vencido: '#ef4444',
+  encerrado: '#10b981',
+};
 
 function formatarDataIso(dataIso: string): string {
   const [ano, mes, dia] = dataIso.split('-');
   return `${dia}/${mes}/${ano}`;
 }
 
-function formatarDataHora(dataHora: string): string {
-  const data = new Date(dataHora);
-  return data.toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
-
 const Monitoramento = () => {
   const [registros, setRegistros] = useState<RegistroValidade[]>([]);
+  const [statusFiltro, setStatusFiltro] = useState<StatusFiltro>('alerta');
   const [carregando, setCarregando] = useState<boolean>(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -44,8 +44,14 @@ const Monitoramento = () => {
         setCarregando(true);
         setErro(null);
 
-        const resposta = await api.get<ApiResponse>('/com-status?status=ATIVA');
-        setRegistros(resposta.data?.dados || []);
+        const statusApi = MAPEAMENTO_STATUS[statusFiltro];
+        const resposta = await api.get<ApiResponse>(`/com-status?status=${statusApi}`);
+
+        const dados = resposta.data?.dados || [];
+        setRegistros(dados);
+
+        console.log(`Status filtrado: ${statusFiltro} (enviado: ${statusApi})`);
+        console.log('Registros retornados:', dados);
       } catch (erroApi) {
         console.error('Erro ao buscar validades:', erroApi);
         setErro('Não foi possível carregar os registros de validade.');
@@ -55,228 +61,96 @@ const Monitoramento = () => {
     };
 
     buscarValidades();
-  }, []);
+  }, [statusFiltro]);
+
+  const handleEditar = (registro: RegistroValidade) => {
+    console.log('Editar registro:', registro._id);
+  };
+
+  const handleEncerrar = (registro: RegistroValidade) => {
+    console.log('Encerrar registro:', registro._id);
+  };
+
+  const handleDeletar = (registro: RegistroValidade) => {
+    console.log('Deletar registro:', registro._id);
+  };
 
   return (
     <div className="monitoramento">
-      <header className="monitoramento__cabecalho">
-        <h1 className="monitoramento__titulo">Últimas validades</h1>
-        <p className="monitoramento__subtitulo">
-          Validades mais recentes
-        </p>
+      <header className="monitoramento-cabecalho">
+        <Calendar />
+        <h1 className="monitoramento-titulo">Monitorar Validades</h1>
       </header>
 
-      <div className="monitoramento__lista">
-        {carregando ? (
-          <div className="monitoramento__vazio">
-            <Loader2 size={48} className="monitoramento__vazio-icone monitoramento__vazio-icone--girando" />
-            <p>Carregando registros de validade...</p>
-          </div>
-        ) : erro ? (
-          <div className="monitoramento__vazio monitoramento__vazio--erro">
-            <AlertTriangle size={48} className="monitoramento__vazio-icone" />
-            <p>{erro}</p>
-          </div>
-        ) : registros.length === 0 ? (
-          <div className="monitoramento__vazio">
-            <AlertTriangle size={48} className="monitoramento__vazio-icone" />
-            <p>Nenhum registro de validade encontrado.</p>
-          </div>
-        ) : (
+      <div className="monitoramento-filtros">
+        <label htmlFor="filtro-status">Filtrar por status:</label>
+        <select
+          id="filtro-status"
+          value={statusFiltro}
+          onChange={(e) => setStatusFiltro(e.target.value as StatusFiltro)}
+        >
+          <option value="espera">ESPERA</option>
+          <option value="alerta">ALERTA</option>
+          <option value="vencido">VENCIDO</option>
+          <option value="encerrado">ENCERRADO</option>
+        </select>
+      </div>
+
+      {carregando && <p>Carregando...</p>}
+      {erro && <p className="erro">{erro}</p>}
+
+      <div className="monitoramento-lista">
+        {!carregando &&
           registros.map((registro) => (
-            <article
-              key={registro._id}
-              className={`monitoramento__card ${
-                registro.status === 'VENCIDA'
-                  ? 'monitoramento__card--vencida'
-                  : registro.dentro_do_periodo_alerta
-                  ? 'monitoramento__card--alerta'
-                  : ''
-              }`}
-            >
-              <div className="monitoramento__card-cabecalho">
-                <div className="monitoramento__status">
-                  <span
-                    className={`monitoramento__badge monitoramento__badge--${registro.status.toLowerCase()}`}
-                  >
-                    {registro.status === 'ATIVA' ? 'Ativa' : 'Vencida'}
+            <div key={registro._id} className="registro-card">
+              <div className="registro-conteudo">
+                <span
+                  className="registro-status"
+                  style={{ color: COR_STATUS[registro.validade] }}
+                >
+                  {LABEL_STATUS[registro.validade]}
+                </span>
+
+                <h3 className="registro-nome">{registro.produto.nome}</h3>
+
+                <div className="registro-meta">
+                  <span>{formatarDataIso(registro.data.data_iso)}</span>
+                  <span>•</span>
+                  <span>
+                    {registro.dias_restantes === null
+                      ? 'Sem prazo'
+                      : `${registro.dias_restantes} dias restantes`}
                   </span>
-                  {registro.dentro_do_periodo_alerta && (
-                    <span className="monitoramento__badge monitoramento__badge--alerta">
-                      Em alerta
-                    </span>
-                  )}
-                </div>
-                <div className="monitoramento__acoes">
-                  <button
-                    type="button"
-                    className="monitoramento__botao monitoramento__botao--editar"
-                    title="Editar"
-                  >
-                    <Pencil size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    className="monitoramento__botao monitoramento__botao--encerrar"
-                    title="Encerrar"
-                  >
-                    <CheckCircle size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    className="monitoramento__botao monitoramento__botao--excluir"
-                    title="Excluir"
-                  >
-                    <Trash2 size={18} />
-                  </button>
                 </div>
               </div>
 
-              <div className="monitoramento__grupos">
+              <div className="registro-acoes">
+                <button
+                  type="button"
+                  title="Editar"
+                  onClick={() => handleEditar(registro)}
+                >
+                  <Pencil size={14} />
+                </button>
 
-                <section className="monitoramento__grupo">
-                  <div className="monitoramento__grupo-titulo">
-                    <Package size={18} />
-                    <h3>Produto</h3>
-                  </div>
-                  <div className="monitoramento__grupo-conteudo">
-                    <p>
-                      <span className="monitoramento__rotulo">Nome:</span>
-                      <span className="monitoramento__valor">
-                        {registro.produto.nome}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Código de barras:
-                      </span>
-                      <span className="monitoramento__valor monitoramento__valor--monospace">
-                        {registro.produto.codigoBarras}
-                      </span>
-                    </p>
-                  </div>
-                </section>
+                <button
+                  type="button"
+                  title="Encerrar"
+                  onClick={() => handleEncerrar(registro)}
+                >
+                  <CheckCircle size={14} />
+                </button>
 
-                <section className="monitoramento__grupo">
-                  <div className="monitoramento__grupo-titulo">
-                    <Calendar size={18} />
-                    <h3>Validade</h3>
-                  </div>
-                  <div className="monitoramento__grupo-conteudo">
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Data de validade:
-                      </span>
-                      <span className="monitoramento__valor monitoramento__valor--destaque">
-                        {formatarDataIso(registro.data.data_iso)}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Data original:
-                      </span>
-                      <span className="monitoramento__valor">
-                        {registro.data.data_original}
-                      </span>
-                    </p>
-                  </div>
-                </section>                
-
-                <section className="monitoramento__grupo">
-                  <div className="monitoramento__grupo-titulo">
-                    <Bell size={18} />
-                    <h3>Alerta</h3>
-                  </div>
-                  <div className="monitoramento__grupo-conteudo">
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Dias de antecedência:
-                      </span>
-                      <span className="monitoramento__valor">
-                        {registro.alerta.dias_antecedencia}{' '}
-                        {registro.alerta.dias_antecedencia === 1 ? 'dia' : 'dias'}
-                      </span>
-                    </p>
-                  </div>
-                </section>
-
-                <section className="monitoramento__grupo">
-                  <div className="monitoramento__grupo-titulo">
-                    <AlertTriangle size={18} />
-                    <h3>Monitorando</h3>
-                  </div>
-                  <div className="monitoramento__grupo-conteudo">
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Status da validade:
-                      </span>
-                      <span
-                        className={`monitoramento__valor monitoramento__valor--${registro.status.toLowerCase()}`}
-                      >
-                        {registro.status === 'ATIVA' ? 'Ativa' : 'Vencida'}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Dentro do período de alerta?
-                      </span>
-                      <span
-                        className={`monitoramento__valor ${
-                          registro.dentro_do_periodo_alerta
-                            ? 'monitoramento__valor--alerta'
-                            : 'monitoramento__valor--ok'
-                        }`}
-                      >
-                        {registro.dentro_do_periodo_alerta ? 'Sim' : 'Não'}
-                      </span>
-                    </p>
-                    <p>
-                      <span className="monitoramento__rotulo">
-                        Dias restantes:
-                      </span>
-                      <span
-                        className={`monitoramento__valor ${
-                          registro.dias_restantes === null
-                            ? ''
-                            : registro.dias_restantes <= 1
-                            ? 'monitoramento__valor--critico'
-                            : registro.dias_restantes <= 3
-                            ? 'monitoramento__valor--alerta'
-                            : 'monitoramento__valor--ok'
-                        }`}
-                      >
-                        {registro.dias_restantes === null
-                          ? '—'
-                          : `${registro.dias_restantes} ${
-                              registro.dias_restantes === 1 ? 'dia' : 'dias'
-                            }`}
-                      </span>
-                    </p>
-                  </div>
-                </section>
+                <button
+                  type="button"
+                  title="Deletar"
+                  onClick={() => handleDeletar(registro)}
+                >
+                  <Trash2 size={14} />
+                </button>
               </div>
-
-              <footer className="monitoramento__metadados">
-                <div className="monitoramento__metadados-icone">
-                  <Clock size={16} />
-                </div>
-                <p>
-                  <span className="monitoramento__rotulo">Criado em:</span>
-                  <span className="monitoramento__valor">
-                    {formatarDataHora(registro.criadoEm)}
-                  </span>
-                </p>
-                <span className="monitoramento__separador">|</span>
-                <p>
-                  <span className="monitoramento__rotulo">Atualizado em:</span>
-                  <span className="monitoramento__valor">
-                    {formatarDataHora(registro.atualizadoEm)}
-                  </span>
-                </p>
-              </footer>
-            </article>
-          ))
-        )}
+            </div>
+          ))}
       </div>
     </div>
   );

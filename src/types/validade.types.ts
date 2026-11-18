@@ -112,7 +112,7 @@ export interface RegistroValidade {
   alerta: Alerta;
   criadoEm: string;
   atualizadoEm: string;
-  status: 'ATIVA' | 'VENCIDA';
+  validade: 'espera' | 'alerta' | 'vencido' | 'encerrado';
   dentro_do_periodo_alerta: boolean;
   dias_restantes: number | null;
 }
